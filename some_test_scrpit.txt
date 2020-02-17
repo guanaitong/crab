@@ -1,0 +1,74 @@
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#-strong-read-operations-endpoints-v1-core-strong-
+
+curl -X GET http://127.0.0.1:8080/api/v1/endpoints
+curl -k -X GET https://20.0.0.1:443/api/v1/endpoints
+
+curl -X GET http://127.0.0.1:8080/api/v1/namespaces/default/endpoints/userdoor
+{
+  "kind": "Endpoints",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "userdoor",
+    "namespace": "default",
+    "selfLink": "/api/v1/namespaces/default/endpoints/userdoor",
+    "uid": "c793626a-1b38-11ea-b74b-0050569ae5cb",
+    "resourceVersion": "238857146",
+    "creationTimestamp": "2019-12-10T10:35:26Z",
+    "labels": {
+      "k8s-app": "userdoor"
+    }
+  },
+  "subsets": [
+    {
+      "addresses": [
+        {
+          "ip": "1.0.33.243",
+          "nodeName": "10.101.11.17",
+          "targetRef": {
+            "kind": "Pod",
+            "namespace": "default",
+            "name": "userdoor-6fd8bf4f55-z4dh8",
+            "uid": "b394409d-4cb7-11ea-b74b-0050569ae5cb",
+            "resourceVersion": "238856674"
+          }
+        },
+        {
+          "ip": "1.0.41.61",
+          "nodeName": "10.101.11.25",
+          "targetRef": {
+            "kind": "Pod",
+            "namespace": "default",
+            "name": "userdoor-6fd8bf4f55-p2dbs",
+            "uid": "ff6c1ed1-4cb7-11ea-b74b-0050569ae5cb",
+            "resourceVersion": "238857138"
+          }
+        }
+      ],
+      "ports": [
+        {
+          "port": 80,
+          "protocol": "TCP"
+        }
+      ]
+    }
+  ]
+}
+
+
+passport-auth发布时的实验：
+先发送watch:
+curl -X GET http://127.0.0.1:8080/api/v1/watch/namespaces/default/endpoints/passport-auth?timeoutSeconds=1800
+然后点击重启：
+第一次出现，结果和初始化一模一样，对应老实例passport-auth-5f7f676c6c-6vts6，表示开始变化：
+{"type":"ADDED","object":{"kind":"Endpoints","apiVersion":"v1","metadata":{"name":"passport-auth","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/passport-auth","uid":"f0bf412e-1b38-11ea-b74b-0050569ae5cb","resourceVersion":"229169672","creationTimestamp":"2019-12-10T10:36:35Z","labels":{"k8s-app":"passport-auth"}},"subsets":[{"addresses":[{"ip":"1.0.15.76","nodeName":"10.101.11.165","targetRef":{"kind":"Pod","namespace":"default","name":"passport-auth-5f7f676c6c-6vts6","uid":"d2775094-3833-11ea-b74b-0050569ae5cb","resourceVersion":"229169665"}}],"ports":[{"port":80,"protocol":"TCP"}]}]}}
+
+增加了notready的实例，对应新实例：passport-auth-55987979b9-b7swt
+{"type":"MODIFIED","object":{"kind":"Endpoints","apiVersion":"v1","metadata":{"name":"passport-auth","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/passport-auth","uid":"f0bf412e-1b38-11ea-b74b-0050569ae5cb","resourceVersion":"239536983","creationTimestamp":"2019-12-10T10:36:35Z","labels":{"k8s-app":"passport-auth"}},"subsets":[{"addresses":[{"ip":"1.0.15.76","nodeName":"10.101.11.165","targetRef":{"kind":"Pod","namespace":"default","name":"passport-auth-5f7f676c6c-6vts6","uid":"d2775094-3833-11ea-b74b-0050569ae5cb","resourceVersion":"229169665"}}],"notReadyAddresses":[{"ip":"1.0.29.91","nodeName":"10.101.11.14","targetRef":{"kind":"Pod","namespace":"default","name":"passport-auth-55987979b9-b7swt","uid":"948ab2f7-4e1c-11ea-b74b-0050569ae5cb","resourceVersion":"239536982"}}],"ports":[{"port":80,"protocol":"TCP"}]}]}}
+
+notready没有了，新老两个实例全部是ready状态
+{"type":"MODIFIED","object":{"kind":"Endpoints","apiVersion":"v1","metadata":{"name":"passport-auth","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/passport-auth","uid":"f0bf412e-1b38-11ea-b74b-0050569ae5cb","resourceVersion":"239537249","creationTimestamp":"2019-12-10T10:36:35Z","labels":{"k8s-app":"passport-auth"}},"subsets":[{"addresses":[{"ip":"1.0.15.76","nodeName":"10.101.11.165","targetRef":{"kind":"Pod","namespace":"default","name":"passport-auth-5f7f676c6c-6vts6","uid":"d2775094-3833-11ea-b74b-0050569ae5cb","resourceVersion":"229169665"}},{"ip":"1.0.29.91","nodeName":"10.101.11.14","targetRef":{"kind":"Pod","namespace":"default","name":"passport-auth-55987979b9-b7swt","uid":"948ab2f7-4e1c-11ea-b74b-0050569ae5cb","resourceVersion":"239537247"}}],"ports":[{"port":80,"protocol":"TCP"}]}]}}
+
+老实例没有了，只剩新实例passport-auth-55987979b9-b7swt
+{"type":"MODIFIED","object":{"kind":"Endpoints","apiVersion":"v1","metadata":{"name":"passport-auth","namespace":"default","selfLink":"/api/v1/namespaces/default/endpoints/passport-auth","uid":"f0bf412e-1b38-11ea-b74b-0050569ae5cb","resourceVersion":"239537256","creationTimestamp":"2019-12-10T10:36:35Z","labels":{"k8s-app":"passport-auth"}},"subsets":[{"addresses":[{"ip":"1.0.29.91","nodeName":"10.101.11.14","targetRef":{"kind":"Pod","namespace":"default","name":"passport-auth-55987979b9-b7swt","uid":"948ab2f7-4e1c-11ea-b74b-0050569ae5cb","resourceVersion":"239537247"}}],"ports":[{"port":80,"protocol":"TCP"}]}]}}
+
+从endpoints的变化，可以看出k8s是如何实现滚动升级的
