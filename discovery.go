@@ -13,10 +13,16 @@ type DiscoveryClient interface {
 
 // base on k8s
 type KubernetesDiscoveryClient struct {
+	Namespace string
+	Token     string
 }
 
 func (dc *KubernetesDiscoveryClient) GetInstances(serviceId string) ([]*ServiceInstance, error) {
-	endpoints, e := k8s.GetEndpoints(serviceId)
+	namespace := dc.Namespace
+	if namespace == "" {
+		namespace = k8s.GetCurrentNamespace()
+	}
+	endpoints, e := k8s.GetEndpoints(serviceId, namespace, dc.Token)
 	if e != nil {
 		return nil, e
 	}
