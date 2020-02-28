@@ -10,20 +10,14 @@ type GatDiscoveryClient struct {
 	inK8s                     bool
 }
 
-func NewGatDiscoveryClientInCurrentNamespace() *GatDiscoveryClient {
-	return NewGatDiscoveryClient("")
-}
-
-func NewGatDiscoveryClient(namespace string) *GatDiscoveryClient {
+func NewGatDiscoveryClient() *GatDiscoveryClient {
 	workEnv, workIdc := os.Getenv("WORK_ENV"), os.Getenv("WORK_IDC")
 	return &GatDiscoveryClient{
 		dnsDomainDiscoveryClient: &DnsDomainSuffixDiscoveryClient{
 			suffix: "services." + workEnv + "." + workIdc,
 		},
-		kubernetesDiscoveryClient: &KubernetesDiscoveryClient{
-			Namespace: namespace,
-		},
-		inK8s: len(os.Getenv("KUBERNETES_SERVICE_HOST")) > 0,
+		kubernetesDiscoveryClient: &KubernetesDiscoveryClient{},
+		inK8s:                     len(os.Getenv("KUBERNETES_SERVICE_HOST")) > 0,
 	}
 }
 
