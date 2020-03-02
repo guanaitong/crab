@@ -3,12 +3,15 @@ package db
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"github.com/guanaitong/crab/gconf"
 	"github.com/guanaitong/crab/util"
 	"github.com/guanaitong/crab/util/format"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type MysqlServer struct {
@@ -22,12 +25,31 @@ type MysqlServer struct {
 }
 
 type DataSourceConfig struct {
-	DbName            string         `json:"dbName"`
-	Username          string         `json:"username"`
-	EncryptedPassword string         `json:"encryptedPassword"`
-	Password          string         `json:"password"`
-	GroupName         string         `json:"groupName"`
-	MysqlServers      []*MysqlServer `json:"mysqlServers"`
+	DbName            string            `json:"dbName"`
+	Username          string            `json:"username"`
+	EncryptedPassword string            `json:"encryptedPassword"`
+	Password          string            `json:"password"`
+	GroupName         string            `json:"groupName"`
+	MysqlServers      []*MysqlServer    `json:"mysqlServers"`
+	Params            map[string]string `json:"params"`
+}
+
+func (dataSourceConfig *DataSourceConfig) OpenMaster() (db *sql.DB, err error) {
+	return dataSourceConfig.open(false)
+}
+
+func (dataSourceConfig *DataSourceConfig) OpenSlave() (db *sql.DB, err error) {
+	return dataSourceConfig.open(true)
+}
+
+func (dataSourceConfig *DataSourceConfig) open(preferSlave bool) (db *sql.DB, err error) {
+	db, err = sql.Open("mysql", dataSourceConfig.dataSourceName(preferSlave))
+	if err == nil {
+		db.SetMaxOpenConns(dataSourceConfig.getParamValue("maxOpenConns", 20))
+		db.SetMaxIdleConns(dataSourceConfig.getParamValue("maxIdleConns", 3))
+		db.SetConnMaxLifetime(time.Second * time.Duration(dataSourceConfig.getParamValue("maxIdleConns", 1200)))
+	}
+	return
 }
 
 func (dataSourceConfig *DataSourceConfig) MasterDataSourceName() string {
@@ -37,6 +59,7 @@ func (dataSourceConfig *DataSourceConfig) MasterDataSourceName() string {
 func (dataSourceConfig *DataSourceConfig) SlaveDataSourceName() string {
 	return dataSourceConfig.dataSourceName(true)
 }
+
 func (dataSourceConfig *DataSourceConfig) dataSourceName(preferSlave bool) string {
 	var pwd = decrypt(dataSourceConfig.EncryptedPassword)
 	if pwd == "" {
@@ -57,6 +80,17 @@ func (dataSourceConfig *DataSourceConfig) dataSourceName(preferSlave bool) strin
 		mysqlServer.Port,
 		dataSourceConfig.DbName,
 	)
+}
+
+func (dataSourceConfig *DataSourceConfig) getParamValue(key string, defaultValue int) int {
+	v, ok := dataSourceConfig.Params[key]
+	if ok {
+		i, err := strconv.Atoi(v)
+		if err == nil {
+			return i
+		}
+	}
+	return defaultValue
 }
 
 func (dataSourceConfig *DataSourceConfig) getMysqlServer(preferSlave bool) *MysqlServer {

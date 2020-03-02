@@ -16,7 +16,7 @@ func TestDecrypt(t *testing.T) {
 }
 
 func TestGetDefaultDataSourceConfig(t *testing.T) {
-	system.SetupAppName("userdoor")
+	system.SetupAppName("approval")
 	d := GetDefaultDataSourceConfig()
 	m := d.MasterDataSourceName()
 	if m == "" {
@@ -26,4 +26,9 @@ func TestGetDefaultDataSourceConfig(t *testing.T) {
 	if s == "" {
 		t.Error("error")
 	}
+	db, err := d.OpenMaster()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	fmt.Println(fmt.Sprint(db))
 }
