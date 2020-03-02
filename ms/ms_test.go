@@ -1,14 +1,13 @@
-package crab_test
+package ms_test
 
 import (
 	"fmt"
-	"github.com/guanaitong/crab"
+	"github.com/guanaitong/crab/ms"
 	"testing"
 )
 
 func TestGet(t *testing.T) {
-	resp, err := crab.
-		New("httpbin.org").
+	resp, err := ms.New("httpbin.org").
 		Build().
 		R().
 		SetPath("/get").
@@ -25,12 +24,11 @@ func TestGet(t *testing.T) {
 }
 
 func TestPostBody(t *testing.T) {
-	resp, err := crab.
-		New("httpbin.org").
+	resp, err := ms.New("httpbin.org").
 		Build().
 		R().
 		SetPath("/post").
-		SetBody(&crab.User{Username: "xx", Password: "yy"}).
+		SetBody(&ms.User{Username: "xx", Password: "yy"}).
 		Post()
 	print(t, resp, err)
 
@@ -38,8 +36,7 @@ func TestPostBody(t *testing.T) {
 
 func TestPostFormBody(t *testing.T) {
 	m := map[string]interface{}{}
-	resp, err := crab.
-		New("httpbin.org").
+	resp, err := ms.New("httpbin.org").
 		Build().
 		R().
 		SetPath("/post").
@@ -53,7 +50,7 @@ func TestPostFormBody(t *testing.T) {
 	print(t, resp, err)
 }
 
-func print(t *testing.T, resp *crab.Response, err error) {
+func print(t *testing.T, resp *ms.Response, err error) {
 	if err != nil {
 		t.Fail()
 	}

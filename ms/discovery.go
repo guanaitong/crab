@@ -1,8 +1,8 @@
-package crab
+package ms
 
 import (
 	"fmt"
-	"github.com/guanaitong/crab/internal/k8s"
+	"github.com/guanaitong/crab/ms/internal/k8s"
 	"net"
 )
 

@@ -1,5 +1,5 @@
 # crab
-关爱通go语言微服务开放框架，面向k8s。集成了很多关爱通自己的基础组件和工具包。
+关爱通go语言微服务架构，面向k8s
 
 ## 架构
 
@@ -74,7 +74,7 @@ request对象用于定义http request请求。
 
 ```
 m := map[string]interface{}{}
-	resp, err := ms.
+	resp, err := dove.
 		New("httpbin.org").
 		Build().
 		R().
