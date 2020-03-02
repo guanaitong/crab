@@ -77,11 +77,11 @@ func (dc *DnsDomainDiscoveryClient) GetInstances(domainAsServiceId string) ([]*S
 
 // serviceId+suffix is a dns domain
 type DnsDomainSuffixDiscoveryClient struct {
-	suffix string
+	Suffix string
 }
 
 func (dc *DnsDomainSuffixDiscoveryClient) GetInstances(domainPrefixAsServiceId string) ([]*ServiceInstance, error) {
-	domain := domainPrefixAsServiceId + dc.suffix
+	domain := domainPrefixAsServiceId + dc.Suffix
 	addrs, err := net.LookupHost(domain)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
