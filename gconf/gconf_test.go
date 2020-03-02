@@ -1,7 +1,8 @@
-package gconf
+package gconf_test
 
 import (
 	"fmt"
+	"github.com/guanaitong/crab/gconf"
 	"reflect"
 	"strings"
 	"testing"
@@ -22,7 +23,7 @@ type impower struct {
 
 func TestGetConfigCollection(t *testing.T) {
 	t.Log("[impower]-------------------------------")
-	d1 := GetConfigCollection("impower")
+	d1 := gconf.GetConfigCollection("impower")
 	t.Log(d1, d1.AsMap())
 
 	dm1 := d1.GetConfigAsStructuredMap("deny.properties")
@@ -36,11 +37,11 @@ func TestGetConfigCollection(t *testing.T) {
 	}
 
 	t.Log("[userdoor]------------------------------")
-	c := GetConfigCollection("userdoor")
+	c := gconf.GetConfigCollection("userdoor")
 	v1 := c.GetConfig("es.properties")
 	t.Log(v1, v1, c.AsMap())
 
-	c1 := GetConfigCollection("userdoor")
+	c1 := gconf.GetConfigCollection("userdoor")
 	t.Log(c1.AsMap())
 
 	p := new(es)
