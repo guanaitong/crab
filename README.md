@@ -3,4 +3,4 @@
 
 ## 微服务架构
 
-详情见[ms](README.md)
+详情见[ms](ms/README.md)
