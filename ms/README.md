@@ -70,7 +70,7 @@ request对象用于定义http request请求。
 
 ```
 m := map[string]interface{}{}
-	resp, err := dove.
+	resp, err := ms.
 		New("httpbin.org").
 		Build().
 		R().
@@ -92,7 +92,7 @@ fmt.Printf("\nError: %v", err)
 
 可以采用builder模式，一路下来
 
-更多例子可以看[dove_test.go](dove_test.go)
+更多例子可以看[ms_test.go](ms_test.go)
 
 ## 使用规范
 
