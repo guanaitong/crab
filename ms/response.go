@@ -1,6 +1,7 @@
 package ms
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -86,4 +87,8 @@ func (r *Response) IsSuccess() bool {
 // IsError method returns true if HTTP status `code >= 400` otherwise false.
 func (r *Response) IsError() bool {
 	return r.StatusCode() > 399
+}
+
+func (r *Response) AsJson(v interface{}) error {
+	return json.Unmarshal(r.body, v)
 }
