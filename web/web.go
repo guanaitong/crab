@@ -17,7 +17,7 @@ var (
 )
 
 func Success(c *gin.Context, data interface{}) {
-	setHeader(c, 0, "OK")
+	setHeader(c, errors.OK, "OK")
 	switch reflect.ValueOf(data).Kind() {
 	case reflect.String:
 		c.String(http.StatusOK, data.(string))

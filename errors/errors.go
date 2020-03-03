@@ -2,6 +2,13 @@ package errors
 
 import "fmt"
 
+const (
+	OK = iota
+	DbError
+	RedisError
+	RemoteServiceError
+)
+
 type Error interface {
 	Code() int
 	Msg() string
@@ -42,9 +49,9 @@ func (e *SystemError) Error() string {
 	if e.err != nil {
 		m = e.err.Error()
 	}
-	if e.errorCode == 0 {
+	if e.errorCode == DbError {
 		return "db error: " + m
-	} else if e.errorCode == 1 {
+	} else if e.errorCode == RedisError {
 		return "redis error: " + m
 	}
 
@@ -52,15 +59,15 @@ func (e *SystemError) Error() string {
 }
 
 func NewSystemDbError(err error) *SystemError {
-	return &SystemError{errorCode: 1, err: err}
+	return &SystemError{errorCode: DbError, err: err}
 }
 
 func NewSystemRedisError(err error) *SystemError {
-	return &SystemError{errorCode: 2, err: err}
+	return &SystemError{errorCode: RedisError, err: err}
 }
 
 func NewSystemRemoteServiceError(err error) *SystemError {
-	return &SystemError{errorCode: 1, err: err}
+	return &SystemError{errorCode: RemoteServiceError, err: err}
 }
 
 // 业务异常
