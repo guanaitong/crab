@@ -3,19 +3,21 @@ package web
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/guanaitong/crab/errors"
+	"github.com/guanaitong/crab/system"
 	"net/http"
 	"reflect"
 	"strconv"
 )
 
 var (
-	codeKey = http.CanonicalHeaderKey("x-error-code")
-	msgKey  = http.CanonicalHeaderKey("x-error-msg")
+	codeKey        = http.CanonicalHeaderKey("x-error-code")
+	msgKey         = http.CanonicalHeaderKey("x-error-msg")
+	appNameKey     = http.CanonicalHeaderKey("x-app-name")
+	appInstanceKey = http.CanonicalHeaderKey("x-app-instance")
 )
 
 func Success(c *gin.Context, data interface{}) {
-	c.Header(codeKey, "0")
-	c.Header(msgKey, "OK")
+	setHeader(c, 0, "OK")
 	switch reflect.ValueOf(data).Kind() {
 	case reflect.String:
 		c.String(http.StatusOK, data.(string))
@@ -52,15 +54,19 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func Fail(c *gin.Context, code int, message string) {
-	c.Header(codeKey, strconv.Itoa(code))
-	c.Header(msgKey, message)
-	c.Status(http.StatusOK)
+	setHeader(c, code, message)
 	c.Abort()
 }
 
 func Error(c *gin.Context, err errors.Error) {
-	c.Header(codeKey, strconv.Itoa(err.Code()))
-	c.Header(msgKey, err.Msg())
-	c.String(http.StatusOK, err.Error())
+	setHeader(c, err.Code(), err.Msg())
 	c.Abort()
+}
+
+func setHeader(c *gin.Context, code int, message string) {
+	c.Header(codeKey, strconv.Itoa(code))
+	c.Header(msgKey, message)
+	c.Header(appNameKey, system.GetAppName())
+	c.Header(appInstanceKey, system.GetAppInstance())
+	c.Status(http.StatusOK)
 }
