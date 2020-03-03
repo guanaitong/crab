@@ -60,6 +60,13 @@ func (e *SystemError) Error() string {
 	return "system error " + m
 }
 
+func NewDbError(err error) *SystemError {
+	if err == nil {
+		return nil
+	}
+	return &SystemError{Err: err, Code: DbError}
+}
+
 // 业务异常
 type BusinessError struct {
 	Code int
