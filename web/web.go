@@ -18,6 +18,10 @@ var (
 
 func Success(c *gin.Context, data interface{}) {
 	setHeader(c, errors.OK, "OK")
+	if data == nil {
+		c.String(http.StatusOK, "")
+		c.Abort()
+	}
 	switch reflect.ValueOf(data).Kind() {
 	case reflect.String:
 		c.String(http.StatusOK, data.(string))
