@@ -108,7 +108,7 @@ func (client *ServiceClient) doOneReq(request *Request) (*Response, bool, error)
 		receivedAt:  endTime,
 	}
 	if err != nil {
-		//value, ok := err.(url.Error)
+		//value, ok := err.(url.ApiError)
 		return response, false, fmt.Errorf("request error %w", err)
 	}
 	if request.notParseResponse {

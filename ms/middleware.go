@@ -238,7 +238,7 @@ func parseResponseBody(res *Response) (err error) {
 			}
 		}
 
-		// HTTP status code > 399, considered as Error
+		// HTTP status code > 399, considered as ApiError
 		if res.IsError() {
 			if res.Request.Error != nil {
 				err = json.Unmarshal(res.body, res.Request.Error)
