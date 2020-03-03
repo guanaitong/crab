@@ -47,6 +47,10 @@ func GetCurrentConfigCollection() *ConfigCollection {
 	return GetConfigCollection(system.GetAppName())
 }
 
+func GetGlobalConfigCollection() *ConfigCollection {
+	return GetConfigCollection("golang")
+}
+
 func GetConfigCollection(appId string) *ConfigCollection {
 	res, ok := cache[appId]
 	if ok {

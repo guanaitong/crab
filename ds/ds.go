@@ -124,7 +124,7 @@ func decrypt(encryptedPassword string) string {
 	if err != nil {
 		return ""
 	}
-	publicKey := gconf.GetConfigCollection("golang").GetConfig("publicKey")
+	publicKey := gconf.GetGlobalConfigCollection().GetConfig("publicKey")
 	key, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
 		return ""
