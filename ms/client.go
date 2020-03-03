@@ -89,14 +89,17 @@ func (client *ServiceClient) doOneReq(request *Request) (*Response, bool, error)
 	request.serviceInstance = serviceInstance
 	err := buildHttpRequest(request)
 	if err != nil {
+		return nil, false, fmt.Errorf("illegal request %w", err)
+	}
+	request.Time = time.Now()
+	httpResponse, err := client.httpClient.Do(request.RawRequest)
+	if err != nil {
 		errString := err.Error()
 		if strings.Contains(errString, "dial tcp") {
 			serviceInstance.Status.NetFailed = true
 		}
-		return nil, true, fmt.Errorf("illegal request %w", err)
+		return nil, true, fmt.Errorf("dial tcp error %w", err)
 	}
-	request.Time = time.Now()
-	httpResponse, err := client.httpClient.Do(request.RawRequest)
 	endTime := time.Now()
 
 	response := &Response{
