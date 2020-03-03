@@ -74,28 +74,3 @@ func (dc *DnsDomainDiscoveryClient) GetInstances(domainAsServiceId string) ([]*S
 	}
 	return res, nil
 }
-
-// serviceId+suffix is a dns domain
-type DnsDomainSuffixDiscoveryClient struct {
-	Suffix string
-}
-
-func (dc *DnsDomainSuffixDiscoveryClient) GetInstances(domainPrefixAsServiceId string) ([]*ServiceInstance, error) {
-	domain := domainPrefixAsServiceId + dc.Suffix
-	addrs, err := net.LookupHost(domain)
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-	var res []*ServiceInstance
-	for _, addr := range addrs {
-		instance := ServiceInstance{
-			ServiceId:  domainPrefixAsServiceId,
-			InstanceId: addr,
-			Host:       domain,
-			Ip:         addr,
-			Port:       80,
-		}
-		res = append(res, &instance)
-	}
-	return res, nil
-}

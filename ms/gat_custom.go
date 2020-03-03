@@ -7,14 +7,14 @@ import (
 )
 
 type GatDiscoveryClient struct {
-	dnsDomainDiscoveryClient *DnsDomainSuffixDiscoveryClient
+	suffix                string
+	domainDiscoveryClient *DnsDomainDiscoveryClient
 }
 
 func NewGatDiscoveryClient() *GatDiscoveryClient {
 	return &GatDiscoveryClient{
-		dnsDomainDiscoveryClient: &DnsDomainSuffixDiscoveryClient{
-			Suffix: system.GetServiceDomainSuffix(),
-		},
+		domainDiscoveryClient: &DnsDomainDiscoveryClient{},
+		suffix:                system.GetServiceDomainSuffix(),
 	}
 }
 
@@ -25,7 +25,7 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 			return
 		}
 	}
-	return dc.dnsDomainDiscoveryClient.GetInstances(serviceId)
+	return dc.domainDiscoveryClient.GetInstances(serviceId + dc.suffix)
 }
 
 func (dc *GatDiscoveryClient) getInstancesByK8s(serviceId string) ([]*ServiceInstance, error) {
