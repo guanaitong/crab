@@ -53,13 +53,8 @@ func Success(c *gin.Context, data interface{}) {
 	c.Abort()
 }
 
-func Fail(c *gin.Context, code int, message string) {
-	setHeader(c, code, message)
-	c.Abort()
-}
-
-func Error(c *gin.Context, err errors.Error) {
-	setHeader(c, err.Code(), err.Msg())
+func Fail(c *gin.Context, err errors.Error) {
+	setHeader(c, err.ErrorCode(), err.ErrorMsg())
 	c.Abort()
 }
 
