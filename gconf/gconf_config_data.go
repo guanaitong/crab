@@ -205,8 +205,8 @@ func toStructuredData(key, raw string) *configData {
 				continue
 			}
 			j[kv[0]] = &Field{
-				Name:     kv[0],
-				RawValue: kv[1],
+				Name:     strings.TrimSpace(kv[0]),
+				RawValue: strings.TrimSpace(kv[1]),
 			}
 		}
 
