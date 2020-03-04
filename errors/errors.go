@@ -67,6 +67,13 @@ func NewDbError(err error) *SystemError {
 	return &SystemError{Err: err, Code: DbError}
 }
 
+func Cast(err error) Error {
+	if err == nil {
+		return nil
+	}
+	return err.(Error)
+}
+
 // 业务异常
 type BusinessError struct {
 	Code int
