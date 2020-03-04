@@ -6,6 +6,14 @@ import (
 	"github.com/guanaitong/crab/system"
 )
 
+var (
+	endpoints = map[string]string{}
+)
+
+func AddEndpointsConfig(serviceId string, host string) {
+	endpoints[serviceId] = host
+}
+
 type GatDiscoveryClient struct {
 	suffix                string
 	domainDiscoveryClient *DnsDomainDiscoveryClient
@@ -24,6 +32,15 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 		if e != nil && len(res) > 0 {
 			return
 		}
+	}
+	host, ok := endpoints[serviceId]
+	if ok {
+		return dc.domainDiscoveryClient.GetInstances(host)
+	}
+	m := gconf.GetGlobalConfigCollection().GetConfigAsStructuredMap("service_address.properties")
+	h, ok := m[serviceId]
+	if ok {
+		return dc.domainDiscoveryClient.GetInstances(h.AsString())
 	}
 	return dc.domainDiscoveryClient.GetInstances(serviceId + dc.suffix)
 }
