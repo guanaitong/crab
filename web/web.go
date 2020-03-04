@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/guanaitong/crab/errors"
 	"github.com/guanaitong/crab/system"
+	"k8s.io/klog"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -58,6 +59,7 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func Fail(c *gin.Context, err errors.Error) {
+	klog.Warningln("Fail--> " + err.Error())
 	setHeader(c, err.ErrorCode(), err.ErrorMsg())
 	c.Abort()
 }
