@@ -43,14 +43,18 @@ func init() {
 	})
 }
 
+// 获取当前应用的配置集合
 func GetCurrentConfigCollection() *ConfigCollection {
 	return GetConfigCollection(system.GetAppName())
 }
 
+// 获取全局的配置配置集合，此方法用于框架的统一配置。
+// 应用不需要调用此方法
 func GetGlobalConfigCollection() *ConfigCollection {
 	return GetConfigCollection("golang")
 }
 
+// 获取某个appId的配置集合
 func GetConfigCollection(appId string) *ConfigCollection {
 	res, ok := cache[appId]
 	if ok {

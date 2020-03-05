@@ -11,6 +11,7 @@ import (
 // newValue 新的值,删除key时，该值为""
 type ConfigChangeListener func(key, oldValue, newValue string)
 
+// 配置集合
 type ConfigCollection struct {
 	appId     string
 	name      string
@@ -26,6 +27,7 @@ func (c *ConfigCollection) getConfigData(key string) *configData {
 	return nil
 }
 
+// 获取key对应的rawValue
 func (c *ConfigCollection) GetConfig(key string) string {
 	v := c.getConfigData(key)
 	if v == nil {
@@ -34,7 +36,7 @@ func (c *ConfigCollection) GetConfig(key string) string {
 	return v.raw
 }
 
-//
+// 获取key对应的结构体value
 func (c *ConfigCollection) GetConfigAsStructuredMap(key string) map[string]*Field {
 	v := c.getConfigData(key)
 	if v == nil {
