@@ -27,7 +27,8 @@ func (c *ConfigCollection) getConfigData(key string) *configData {
 	return nil
 }
 
-// 获取key对应的rawValue
+// 获取key对应的rawValue，原始文本内容
+// 用户可以自己拿到rawValue做解析
 func (c *ConfigCollection) GetConfig(key string) string {
 	v := c.getConfigData(key)
 	if v == nil {
@@ -36,7 +37,8 @@ func (c *ConfigCollection) GetConfig(key string) string {
 	return v.raw
 }
 
-// 获取key对应的结构体value
+// 如果key是properties或者json类型，那么gconf会自动把key对应的文本转换为map结构
+// 该方法即用于获取转换后的map
 func (c *ConfigCollection) GetConfigAsStructuredMap(key string) map[string]*Field {
 	v := c.getConfigData(key)
 	if v == nil {
@@ -45,7 +47,9 @@ func (c *ConfigCollection) GetConfigAsStructuredMap(key string) map[string]*Fiel
 	return v.structuredData
 }
 
-// 将value赋值，value为struct指针。用法类似json.Unmarshal
+// 如果key是properties或者json类型，那么gconf会自动把key对应的文本转换为map结构
+// 该方法会自动基于map数据结构，给传入的value的field赋予值。
+// value为指针。用法类似json.Unmarshal
 func (c *ConfigCollection) GetConfigAsBean(key string, value interface{}) error {
 	v := c.getConfigData(key)
 	if v == nil {
@@ -54,6 +58,7 @@ func (c *ConfigCollection) GetConfigAsBean(key string, value interface{}) error 
 	return v.unmarshal(value)
 }
 
+// 获取配置结合中所有的key-value，以map返回。
 func (c *ConfigCollection) AsMap() map[string]string {
 	res := make(map[string]string)
 	data := c.data // copy to avoid pointer change
