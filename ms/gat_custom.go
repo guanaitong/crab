@@ -46,12 +46,12 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 }
 
 func (dc *GatDiscoveryClient) getInstancesByK8s(serviceId string) ([]*ServiceInstance, error) {
-	namespaceConfig := make(map[string]string)
 	globalConfigCollection := gconf.GetGlobalConfigCollection()
-	globalConfigCollection.GetConfigAsBean("namespace.properties", namespaceConfig)
-	namespace, ok := namespaceConfig[serviceId]
-	if !ok {
-		namespace = k8s.GetCurrentNamespace()
+	namespaceConfig := globalConfigCollection.GetConfigAsStructuredMap("namespace.properties")
+	namespace := k8s.GetCurrentNamespace()
+	namespaceValue, ok := namespaceConfig[serviceId]
+	if ok && namespaceValue.AsString() != "" {
+		namespace = namespaceValue.AsString()
 	}
 
 	token := globalConfigCollection.GetConfig("crab_k8s_token")
