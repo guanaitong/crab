@@ -21,6 +21,10 @@ var (
 )
 
 func SetupAppName(appN string) {
+	appNameFromEnv := os.Getenv("APP_NAME")
+	if appNameFromEnv != "" && appNameFromEnv != appN {
+		panic("appName" + appN + " 与环境变量中不一致,appNameFromEnv:" + appNameFromEnv)
+	}
 	appName = appN
 	log.Printf("setupAppName %s", appName)
 }
