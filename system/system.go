@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	_ "go.uber.org/automaxprocs"
 	"log"
 	"math/rand"
 	"net"
