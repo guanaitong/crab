@@ -4,6 +4,7 @@ import (
 	"github.com/guanaitong/crab/gconf"
 	"github.com/guanaitong/crab/ms/internal/k8s"
 	"github.com/guanaitong/crab/system"
+	"k8s.io/klog"
 )
 
 var (
@@ -29,8 +30,11 @@ func NewGatDiscoveryClient() *GatDiscoveryClient {
 func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInstance, e error) {
 	if system.InK8s() {
 		res, e = dc.getInstancesByK8s(serviceId)
-		if e != nil && len(res) > 0 {
+		if e == nil && len(res) > 0 {
 			return
+		}
+		if e != nil {
+			klog.Errorln("cannot get instances from k8s,err:" + e.Error())
 		}
 	}
 	host, ok := endpoints[serviceId]
