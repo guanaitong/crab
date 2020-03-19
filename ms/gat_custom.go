@@ -34,7 +34,7 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 			return
 		}
 		if e != nil {
-			klog.Errorln("cannot get instances from k8s,err:" + e.Error())
+			klog.Warningln("cannot get instances from k8s for service[" + serviceId + "],err:" + e.Error())
 		}
 	}
 	host, ok := endpoints[serviceId]
