@@ -40,6 +40,13 @@ func (slf *Signer) SetParams(params map[string]string) *Signer {
 	return slf
 }
 
+func (slf *Signer) SetQuery(args map[string]interface{}) *Signer {
+	for k, v := range args {
+		slf.params[k] = fmt.Sprint(v)
+	}
+	return slf
+}
+
 func (slf *Signer) SetSecretKey(secretKey string) *Signer {
 	slf.secretKey = secretKey
 	return slf

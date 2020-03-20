@@ -35,6 +35,13 @@ func (slf *Verifier) SetParams(params map[string]string) *Verifier {
 	return slf
 }
 
+func (slf *Verifier) SetQuery(args map[string]interface{}) *Verifier {
+	for k, v := range args {
+		slf.params[k] = fmt.Sprint(v)
+	}
+	return slf
+}
+
 func (slf *Verifier) SetSecretKey(secretKey string) *Verifier {
 	slf.secretKey = secretKey
 	return slf
@@ -71,6 +78,8 @@ func (slf *Verifier) CheckTimeStamp(param string, timeout time.Duration) error {
 
 func (slf *Verifier) Check(signature string) bool {
 	signer := NewSigner(slf.cryptoFunc)
-	signer.SetSecretKey(slf.secretKey).SetParams(slf.params)
+	signer.
+		SetSecretKey(slf.secretKey).
+		SetParams(slf.params)
 	return signer.GetSignature() == signature
 }

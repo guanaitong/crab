@@ -8,8 +8,10 @@ import (
 
 func TestVerifier_Check(t *testing.T) {
 	verifier := sign.NewVerifierDefault()
-	verifier.SetSecretKey(secretKey).
-		SetParams(params)
+	verifier.
+		SetSecretKey(secretKey).
+		SetParams(params).
+		SetQuery(args)
 
 	t.Log(verifier.Check(signature))
 	assert.EqualValues(t, true, verifier.Check(signature))
@@ -18,7 +20,8 @@ func TestVerifier_Check(t *testing.T) {
 func BenchmarkVerifier_Check(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		verifier := sign.NewVerifierDefault()
-		verifier.SetSecretKey(secretKey).
+		verifier.
+			SetSecretKey(secretKey).
 			SetParams(params)
 
 		verifier.Check(signature)

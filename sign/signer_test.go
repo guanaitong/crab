@@ -8,29 +8,27 @@ import (
 
 const (
 	secretKey = "ZjcxZDUwZTRlZjViOTU5NTFkY2U1NGNhMDZmNmZhMGYK"
-	signature = "9f9e694600d2037573cf2d816f8fcbd7"
+	signature = "d5ed54786712d8362c4def66f3509f99"
 )
 
 var (
-	params map[string]string
-)
-
-func init() {
 	params = map[string]string{
-		"accessKey":   "NzRjMWY1MmZmMjI5MmY4YjQyODc4N2Q3NTY3ODA1MjkK",
-		"timestamp":   "1584501049",
 		"contentType": "application/javascript; charset=utf8",
-		"uri":         "/apiserver-service/task/pull",
-		"queryName":   "queryValue",
+		"path":        "/apiserver-service/task/pull",
 		"body":        "{}",
 	}
-}
+	args = map[string]interface{}{
+		"accessKey": "NzRjMWY1MmZmMjI5MmY4YjQyODc4N2Q3NTY3ODA1MjkK",
+		"timestamp": "1584501049",
+	}
+)
 
 func TestSigner_GetSignature(t *testing.T) {
 	signer := sign.NewSignerDefault()
 	signer.
 		SetSecretKey(secretKey).
-		SetParams(params)
+		SetParams(params).
+		SetQuery(args)
 
 	t.Log(signer.GetSignString())
 	t.Log(signer.GetSignature())
@@ -46,6 +44,7 @@ func BenchmarkNewSignerHmac(b *testing.B) {
 		signer.
 			SetSecretKey(secretKey).
 			SetParams(params).
+			SetQuery(args).
 			GetSignature()
 	}
 }
