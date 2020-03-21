@@ -50,7 +50,9 @@ func (slf *Verifier) SetForm(form map[string]interface{}) *Verifier {
 }
 
 func (slf *Verifier) SetData(data string) *Verifier {
-	slf.params["data"] = data
+	if len(data) > 0 {
+		slf.params["data"] = data
+	}
 	return slf
 }
 

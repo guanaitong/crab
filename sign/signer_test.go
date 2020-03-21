@@ -8,14 +8,13 @@ import (
 
 const (
 	secretKey = "ZjcxZDUwZTRlZjViOTU5NTFkY2U1NGNhMDZmNmZhMGYK"
-	signature = "cb0ac4ae98c9c9c3f8244f4ecd02f720"
+	signature = "211b558d60509337ba3a746e50206d7a"
 )
 
 var (
 	params = map[string]string{
 		"contentType": "application/javascript; charset=utf8",
 		"path":        "/apiserver-service/task/pull",
-		"body":        "{}",
 	}
 	args = map[string]interface{}{
 		"accessKey": "NzRjMWY1MmZmMjI5MmY4YjQyODc4N2Q3NTY3ODA1MjkK",

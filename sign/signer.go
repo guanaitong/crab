@@ -55,7 +55,9 @@ func (slf *Signer) SetForm(form map[string]interface{}) *Signer {
 }
 
 func (slf *Signer) SetData(data string) *Signer {
-	slf.params["data"] = data
+	if len(data) > 0 {
+		slf.params["data"] = data
+	}
 	return slf
 }
 
