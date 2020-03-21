@@ -11,7 +11,9 @@ func TestVerifier_Check(t *testing.T) {
 	verifier.
 		SetSecretKey(secretKey).
 		SetParams(params).
-		SetQuery(args)
+		SetArgs(args).
+		SetForm(form).
+		SetData(data)
 
 	t.Log(verifier.Check(signature))
 	assert.EqualValues(t, true, verifier.Check(signature))
@@ -22,7 +24,10 @@ func BenchmarkVerifier_Check(b *testing.B) {
 		verifier := sign.NewVerifierDefault()
 		verifier.
 			SetSecretKey(secretKey).
-			SetParams(params)
+			SetParams(params).
+			SetArgs(args).
+			SetForm(form).
+			SetData(data)
 
 		verifier.Check(signature)
 	}

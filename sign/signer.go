@@ -40,10 +40,22 @@ func (slf *Signer) SetParams(params map[string]string) *Signer {
 	return slf
 }
 
-func (slf *Signer) SetQuery(args map[string]interface{}) *Signer {
+func (slf *Signer) SetArgs(args map[string]interface{}) *Signer {
 	for k, v := range args {
 		slf.params[k] = fmt.Sprint(v)
 	}
+	return slf
+}
+
+func (slf *Signer) SetForm(form map[string]interface{}) *Signer {
+	for k, v := range form {
+		slf.params[k] = fmt.Sprint(v)
+	}
+	return slf
+}
+
+func (slf *Signer) SetData(data string) *Signer {
+	slf.params["data"] = data
 	return slf
 }
 

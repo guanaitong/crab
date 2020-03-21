@@ -35,10 +35,22 @@ func (slf *Verifier) SetParams(params map[string]string) *Verifier {
 	return slf
 }
 
-func (slf *Verifier) SetQuery(args map[string]interface{}) *Verifier {
+func (slf *Verifier) SetArgs(args map[string]interface{}) *Verifier {
 	for k, v := range args {
 		slf.params[k] = fmt.Sprint(v)
 	}
+	return slf
+}
+
+func (slf *Verifier) SetForm(form map[string]interface{}) *Verifier {
+	for k, v := range form {
+		slf.params[k] = fmt.Sprint(v)
+	}
+	return slf
+}
+
+func (slf *Verifier) SetData(data string) *Verifier {
+	slf.params["data"] = data
 	return slf
 }
 
