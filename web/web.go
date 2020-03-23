@@ -33,18 +33,24 @@ const (
 	defaultLoggerFormat          = "2006-01-02"
 )
 
+var (
+	defaultSkipPaths = []string{"/isLive"}
+)
+
 type logger struct {
 	startTime int64
 	filename  string
 	filePath  string
 	format    string
 	writer    *os.File
+	skipPaths []string
 	lock      sync.Mutex
 }
 
 type Logger interface {
 	Init() error
 	Write(s string) error
+	Flush() error
 	Logger() gin.HandlerFunc
 }
 
@@ -86,10 +92,11 @@ func Default() *gin.Engine {
 
 func NewLogger() Logger {
 	return &logger{
-		filename: defaultAccessLoggerFile,
-		filePath: defaultLoggerPath,
-		format:   defaultLoggerFormat,
-		lock:     sync.Mutex{},
+		filename:  defaultAccessLoggerFile,
+		filePath:  defaultLoggerPath,
+		format:    defaultLoggerFormat,
+		skipPaths: defaultSkipPaths,
+		lock:      sync.Mutex{},
 	}
 }
 
@@ -130,11 +137,13 @@ func (l *logger) Write(s string) error {
 		oldFilename    string
 	)
 
-	if startTime.Format(format) == now.Format(format) {
-		l.writer.Close()
-		oldFilename = strings.Replace(filename, filenameSuffix, "", 1) + "." + startTime.Format(l.format) + filenameSuffix
-		err := syscall.Rename(path.Join(filePath, filename), path.Join(filePath, oldFilename))
+	if startTime.Format(format) != now.Format(format) {
+		err := l.Flush()
 		if err != nil {
+			return err
+		}
+		oldFilename = strings.Replace(filename, filenameSuffix, "", 1) + "." + startTime.Format(l.format) + filenameSuffix
+		if err = syscall.Rename(path.Join(filePath, filename), path.Join(filePath, oldFilename)); err != nil {
 			return err
 		}
 		if err = l.Init(); err != nil {
@@ -145,8 +154,23 @@ func (l *logger) Write(s string) error {
 	return err
 }
 
+func (l *logger) Flush() error {
+	return l.writer.Close()
+}
+
 // access log
 func (l *logger) Logger() gin.HandlerFunc {
+	notlogged := l.skipPaths
+	var skip map[string]struct{}
+
+	if length := len(notlogged); length > 0 {
+		skip = make(map[string]struct{}, length)
+
+		for _, p := range notlogged {
+			skip[p] = struct{}{}
+		}
+	}
+
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
@@ -156,29 +180,31 @@ func (l *logger) Logger() gin.HandlerFunc {
 		// Process request
 		c.Next()
 
-		// Log only when path is not being skipped
-		param := gin.LogFormatterParams{
-			Request: c.Request,
-			Keys:    c.Keys,
+		if _, ok := skip[urlPath]; !ok {
+			// Log only when path is not being skipped
+			param := gin.LogFormatterParams{
+				Request: c.Request,
+				Keys:    c.Keys,
+			}
+
+			// Stop timer
+			param.TimeStamp = time.Now()
+			param.Latency = param.TimeStamp.Sub(start)
+
+			param.ClientIP = c.ClientIP()
+			param.Method = c.Request.Method
+			param.StatusCode = c.Writer.Status()
+			param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
+
+			param.BodySize = c.Writer.Size()
+
+			if raw != "" {
+				urlPath = urlPath + "?" + raw
+			}
+
+			param.Path = urlPath
+			l.Write(defaultLogFormatter(param))
 		}
-
-		// Stop timer
-		param.TimeStamp = time.Now()
-		param.Latency = param.TimeStamp.Sub(start)
-
-		param.ClientIP = c.ClientIP()
-		param.Method = c.Request.Method
-		param.StatusCode = c.Writer.Status()
-		param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
-
-		param.BodySize = c.Writer.Size()
-
-		if raw != "" {
-			urlPath = urlPath + "?" + raw
-		}
-
-		param.Path = urlPath
-		l.Write(defaultLogFormatter(param))
 	}
 }
 
