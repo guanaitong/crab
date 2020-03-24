@@ -12,39 +12,32 @@ go get -u github.com/guanaitong/crab/sign
 ### Signer
 
 ```go
-	secretKey = "ZjcxZDUwZTRlZjViOTU5NTFkY2U1NGNhMDZmNmZhMGYK"
-	params = map[string]string{
-		"accessKey":   "NzRjMWY1MmZmMjI5MmY4YjQyODc4N2Q3NTY3ODA1MjkK",
-		"timestamp":   "1584501049",
-		"contentType": "application/javascript; charset=utf8",
-		"uri":         "/apiserver-service/task/pull",
-		"queryName":   "queryValue",
-		"body":        "{}",
-	}
-	signer := sign.NewSignerDefault() // crypto/hmac 算法签名
+	signer := sign.NewSignerDefault()
 	signer.
-		SetSecretKey(secretKey).   // 设置secretKey
-		SetParams(params).         // 设置签名参数，按约定参数体
-		GetSignature()             // 获取签名串
+		SetSecretKey(secretKey).     // 设置SecretKey
+		SetParams(params).           // 设置签名约定参数
+		SetQueryParams(queryParams)  // 设置补充参数
+
+	t.Log(signer.GetSignString()     // 获取签名体
+	t.Log(signer.GetSignature())     // 获取签名串
+	assert.EqualValues(t, signature, signer.GetSignature())
+
+	t.Logf("%-6s: %s", "MD5", signer.SetCryptoFunc(sign.Md5Sign).GetSignature())
+	t.Logf("%-6s: %s", "Hmac", signer.SetCryptoFunc(sign.HmacSign).GetSignature())
+	t.Logf("%-6s: %s", "Sha256", signer.SetCryptoFunc(sign.Sha256Sign).GetSignature())
 
 ```
 
 ### Verifer
 
 ```go
-	secretKey = "ZjcxZDUwZTRlZjViOTU5NTFkY2U1NGNhMDZmNmZhMGYK"
-	params = map[string]string{
-		"accessKey":   "NzRjMWY1MmZmMjI5MmY4YjQyODc4N2Q3NTY3ODA1MjkK",
-		"timestamp":   "1584501049",
-		"contentType": "application/javascript; charset=utf8",
-		"uri":         "/apiserver-service/task/pull",
-		"queryName":   "queryValue",
-		"body":        "{}",
-	}
 	verifier := sign.NewVerifierDefault()
 	verifier.
-	    SetSecretKey(secretKey).          // 设置SecretKey
-		SetParams(params).                // 设置签名参数，按约定参数体
-		Check(signature)                  // 验证签名合法性
+		SetSecretKey(secretKey).     // 设置SecretKey
+		SetParams(params).           // 设置签名约定参数
+		SetQueryParams(queryParams)  // 设置补充参数
+
+	t.Log(verifier.Check(signature)) // 验证签名合法性
+	assert.EqualValues(t, true, verifier.Check(signature))
 
 ```

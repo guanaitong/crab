@@ -3,6 +3,7 @@ package sign
 import (
 	"errors"
 	"fmt"
+	"github.com/guanaitong/crab/util/format"
 	"time"
 )
 
@@ -35,23 +36,23 @@ func (slf *Verifier) SetParams(params map[string]string) *Verifier {
 	return slf
 }
 
-func (slf *Verifier) SetArgs(args map[string]interface{}) *Verifier {
+func (slf *Verifier) SetQueryParams(args map[string]string) *Verifier {
 	for k, v := range args {
-		slf.params[k] = fmt.Sprint(v)
+		slf.params[k] = v
 	}
 	return slf
 }
 
-func (slf *Verifier) SetForm(form map[string]interface{}) *Verifier {
+func (slf *Verifier) SetFormData(form map[string]string) *Verifier {
 	for k, v := range form {
-		slf.params[k] = fmt.Sprint(v)
+		slf.params[k] = v
 	}
 	return slf
 }
 
-func (slf *Verifier) SetData(data string) *Verifier {
-	if len(data) > 0 {
-		slf.params["data"] = data
+func (slf *Verifier) SetBody(body interface{}) *Verifier {
+	if body != nil {
+		slf.params["x-req-body"] = format.AsString(body)
 	}
 	return slf
 }
@@ -91,8 +92,7 @@ func (slf *Verifier) CheckTimeStamp(param string, timeout time.Duration) error {
 }
 
 func (slf *Verifier) Check(signature string) bool {
-	signer := NewSigner(slf.cryptoFunc)
-	signer.
+	signer := NewSigner(slf.cryptoFunc).
 		SetSecretKey(slf.secretKey).
 		SetParams(slf.params)
 	return signer.GetSignature() == signature

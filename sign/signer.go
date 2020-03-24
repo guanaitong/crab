@@ -2,6 +2,7 @@ package sign
 
 import (
 	"fmt"
+	"github.com/guanaitong/crab/util/format"
 	"sort"
 	"strings"
 )
@@ -40,23 +41,23 @@ func (slf *Signer) SetParams(params map[string]string) *Signer {
 	return slf
 }
 
-func (slf *Signer) SetArgs(args map[string]interface{}) *Signer {
+func (slf *Signer) SetQueryParams(args map[string]string) *Signer {
 	for k, v := range args {
-		slf.params[k] = fmt.Sprint(v)
+		slf.params[k] = v
 	}
 	return slf
 }
 
-func (slf *Signer) SetForm(form map[string]interface{}) *Signer {
+func (slf *Signer) SetFormData(form map[string]string) *Signer {
 	for k, v := range form {
-		slf.params[k] = fmt.Sprint(v)
+		slf.params[k] = v
 	}
 	return slf
 }
 
-func (slf *Signer) SetData(data string) *Signer {
-	if len(data) > 0 {
-		slf.params["data"] = data
+func (slf *Signer) SetBody(body interface{}) *Signer {
+	if body != nil {
+		slf.params["x-req-body"] = format.AsString(body)
 	}
 	return slf
 }
