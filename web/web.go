@@ -234,6 +234,7 @@ var defaultLogFormatter = func(param gin.LogFormatterParams) string {
 
 // application log
 func ApplicationLogger() {
+	_ = os.Mkdir(defaultLoggerPath, 0755)
 	klog.InitFlags(nil)
 	_ = flag.Set("logtostderr", "false")
 	_ = flag.Set("alsologtostderr", "true")

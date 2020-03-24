@@ -16,7 +16,7 @@ type Error interface {
 	Unwrap() error
 }
 
-// 系统异常,1=数据库 2=redis 3=remote service
+// 系统异常:1=数据库,2=redis,3=remote service
 type SystemError struct {
 	Err  error
 	Code int
@@ -65,6 +65,20 @@ func NewDbError(err error) *SystemError {
 		return nil
 	}
 	return &SystemError{Err: err, Code: DbError}
+}
+
+func NewRedisError(err error) *SystemError {
+	if err == nil {
+		return nil
+	}
+	return &SystemError{Err: err, Code: RedisError}
+}
+
+func NewRemoteServiceError(err error) *SystemError {
+	if err == nil {
+		return nil
+	}
+	return &SystemError{Err: err, Code: RemoteServiceError}
 }
 
 func Cast(err error) Error {
