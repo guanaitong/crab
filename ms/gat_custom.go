@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	endpoints = map[string]string{}
+	endpoints = map[string]*ServiceInstance{}
 )
 
-func AddEndpointsConfig(serviceId string, host string) {
-	endpoints[serviceId] = host
+func AddEndpointsConfig(serviceId string, host string, port int) {
+	endpoints[serviceId] = &ServiceInstance{Ip: host, Host: host, Port: port}
 }
 
 type GatDiscoveryClient struct {
@@ -37,9 +37,9 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 			klog.Warningln("cannot get instances from k8s for service[" + serviceId + "],err:" + e.Error())
 		}
 	}
-	host, ok := endpoints[serviceId]
+	s, ok := endpoints[serviceId]
 	if ok {
-		return dc.domainDiscoveryClient.GetInstances(host)
+		return []*ServiceInstance{s}, nil
 	}
 	m := gconf.GetGlobalConfigCollection().GetConfigAsStructuredMap("service_address.properties")
 	h, ok := m[serviceId]
