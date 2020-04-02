@@ -54,8 +54,8 @@ func (redisConfig *RedisConfig) NewClient() *redis.Client {
 		return redis.NewClient(opt)
 	} else if redisConfig.Type == 1 {
 		fOpt := &redis.FailoverOptions{
-			MasterName:    redisConfig.Sentinel.master,
-			SentinelAddrs: strings.Split(redisConfig.Sentinel.nodes, ","),
+			MasterName:    redisConfig.Sentinel.Master,
+			SentinelAddrs: strings.Split(redisConfig.Sentinel.Nodes, ","),
 			Password:      pwd,
 			DB:            redisConfig.Db,
 		}
