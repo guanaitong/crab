@@ -19,8 +19,8 @@ type StandaloneConfig struct {
 
 // 哨兵模式配置
 type SentinelConfig struct {
-	master string `json:"master"`
-	nodes  string `json:"nodes"`
+	Master string `json:"master"`
+	Nodes  string `json:"nodes"`
 }
 
 type RedisConfig struct {
