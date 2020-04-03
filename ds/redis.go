@@ -1,12 +1,22 @@
 package ds
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v7"
 	"github.com/guanaitong/crab/gconf"
 	"github.com/guanaitong/crab/system"
 	"github.com/guanaitong/crab/util/format"
 	"strings"
+)
+
+const defaultRedisConfigKey = "redis-config.json"
+
+type RedisType int
+
+const (
+	RedisStandalone RedisType = iota
+	RedisSentinel
 )
 
 // 单机模式配置
@@ -24,7 +34,7 @@ type SentinelConfig struct {
 }
 
 type RedisConfig struct {
-	Type              int              `json:"type"`
+	Type              RedisType        `json:"type"`
 	Standalone        StandaloneConfig `json:"standalone"`
 	Sentinel          SentinelConfig   `json:"sentinel"`
 	Password          string           `json:"password"`
@@ -38,7 +48,7 @@ func (redisConfig *RedisConfig) NewClient() *redis.Client {
 		pwd = redisConfig.Password
 	}
 
-	if redisConfig.Type == 0 {
+	if redisConfig.Type == RedisStandalone {
 		var (
 			host, port = redisConfig.Standalone.Host, redisConfig.Standalone.Port
 		)
@@ -52,7 +62,7 @@ func (redisConfig *RedisConfig) NewClient() *redis.Client {
 			DB:       redisConfig.Db,
 		}
 		return redis.NewClient(opt)
-	} else if redisConfig.Type == 1 {
+	} else if redisConfig.Type == RedisSentinel {
 		fOpt := &redis.FailoverOptions{
 			MasterName:    redisConfig.Sentinel.Master,
 			SentinelAddrs: strings.Split(redisConfig.Sentinel.Nodes, ","),
@@ -65,12 +75,20 @@ func (redisConfig *RedisConfig) NewClient() *redis.Client {
 	}
 }
 
-func GetDefaultRedisConfig() *RedisConfig {
+func GetRedisConfig(key string) *RedisConfig {
+	if key == "" {
+		panic(errors.New("redis config is null"))
+	}
+
 	redisConfig := new(RedisConfig)
-	configValue := gconf.GetCurrentConfigCollection().GetConfig("redis-config.json")
+	configValue := gconf.GetCurrentConfigCollection().GetConfig(key)
 	err := format.AsJson(configValue, redisConfig)
 	if err != nil {
 		panic(err.Error())
 	}
 	return redisConfig
+}
+
+func GetDefaultRedisConfig() *RedisConfig {
+	return GetRedisConfig(defaultDataSourceKey)
 }
