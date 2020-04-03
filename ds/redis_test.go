@@ -17,6 +17,8 @@ func TestGetRedisConfig(t *testing.T) {
 	system.SetupAppName("for-test-java")
 	d := ds.GetDefaultRedisConfig()
 	//d := ds.GetRedisConfig("redis-config.json")
+	assert.NotNil(t, d)
+  
 	client := d.NewClient()
 	err := client.Set(key, value, 0).Err()
 	if !assert.NoError(t, err) {
