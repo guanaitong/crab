@@ -1,11 +1,14 @@
-package ds
+package ds_test
 
 import (
-	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/guanaitong/crab/ds"
 	"github.com/guanaitong/crab/system"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
+/*
 func TestDecrypt(t *testing.T) {
 	epwd := "E+lDullrAU/qV1MVqR7L0GrbBkFHWaftsKTVni3ooL90/PZyH/VpcKF/HqJqzAyzoHI8vR+tawW/kE5sgRcpVkYivugNhWhEtnQpbRNjvnkCd8OcyuhjEVnrzDg4iNtJ4+RWKq37vb4aXU1/skmXDLd1Jf2ZNYndzTgHM1EbP6Ac0KqWzpeS4o2QxtX4E1nzdrxCOtEYtTewtXiaxA4kHdVb6fIkLa/OvY2xDNOQZKhlw9IU6LC3Ypq8qqQPq1dCW+Y/TzktZcbKVmQ0aHchPLuWpiO2VNwojHu7hiD7ZiNsELiDvose8iNNSwwpfTKbIODqjtgBrRWD/VLjCbMcxg=="
 	pwd := decrypt(epwd)
@@ -13,22 +16,24 @@ func TestDecrypt(t *testing.T) {
 		t.Error("error")
 	}
 	fmt.Println(pwd)
-}
+}*/
 
-func TestGetDefaultDataSourceConfig(t *testing.T) {
+func TestGetDataSourceConfig(t *testing.T) {
 	system.SetupAppName("approval")
-	d := GetDefaultDataSourceConfig()
+	d := ds.GetDefaultDataSourceConfig()
+	//d := ds.GetDataSourceConfig("datasource.json")
+	assert.NotNil(t, d)
+
 	m := d.MasterDataSourceName()
-	if m == "" {
-		t.Error("error")
-	}
+	assert.NotEmpty(t, m)
+
 	s := d.SlaveDataSourceName()
-	if s == "" {
-		t.Error("error")
-	}
+	assert.NotEmpty(t, s)
+
 	db, err := d.OpenMaster()
-	if err != nil {
+	if !assert.NoError(t, err) {
 		t.Error(err.Error())
+		return
 	}
-	fmt.Println(fmt.Sprint(db))
+	t.Log(db)
 }

@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/guanaitong/crab/gconf"
 	"github.com/guanaitong/crab/util"
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"time"
 )
+
+const defaultDataSourceKey = "datasource.json"
 
 type MysqlServer struct {
 	Name      string `json:"name"`
@@ -137,12 +140,20 @@ func decrypt(encryptedPassword string) string {
 	return string(util.RsaPublicDecrypt(pub, encryptedDecodeBytes))
 }
 
-func GetDefaultDataSourceConfig() *DataSourceConfig {
+func GetDataSourceConfig(key string) *DataSourceConfig {
+	if key == "" {
+		panic(errors.New("data source is null"))
+	}
+
 	dataSourceConfig := new(DataSourceConfig)
-	configValue := gconf.GetCurrentConfigCollection().GetConfig("datasource.json")
+	configValue := gconf.GetCurrentConfigCollection().GetConfig(key)
 	err := format.AsJson(configValue, dataSourceConfig)
 	if err != nil {
 		panic(err.Error())
 	}
 	return dataSourceConfig
+}
+
+func GetDefaultDataSourceConfig() *DataSourceConfig {
+	return GetDataSourceConfig(defaultDataSourceKey)
 }
