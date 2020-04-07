@@ -1,4 +1,4 @@
-package web
+package router
 
 import (
 	"flag"
@@ -37,20 +37,43 @@ var (
 	defaultSkipPaths = []string{"/isLive"}
 )
 
+type msgFmt struct {
+	RequestTime        string        // 请求时间
+	ThreadName         string        // 处理线程
+	AccessIp           string        // 访问者的IP
+	AppName            string        // 应用名
+	AppInstance        string        // 应用实例
+	RequestAppName     string        // 请求应用名
+	RequestAppInstance string        // 请求应用实例
+	TraceId            string        // 分布式jaeger追踪系统里的traceId
+	SpanId             string        // 分布式jaeger追踪系统里的spanId
+	ParentId           string        // 分布式jaeger追踪系统里的parentId
+	Method             string        // http请求方法
+	URL                string        // http请求URL里的路径
+	Protocol           string        // http请求协议版本
+	StatusCode         int           // http请求返回码
+	BodySize           int           // http请求发送信息的字节数，不包括http头，如果字节数为0的话，显示为-
+	Latency            time.Duration // http请求处理消耗时间，单位毫秒
+	Query              string        // http请求URL里的query
+}
+
 type logger struct {
-	startTime int64
-	filename  string
-	filePath  string
-	format    string
-	writer    *os.File
-	skipPaths []string
-	lock      sync.Mutex
+	startTime  int64
+	filename   string
+	filePath   string
+	format     string
+	writer     *os.File
+	skipPaths  []string
+	lock       sync.Mutex
+	logChan    chan *msgFmt
+	signalChan chan struct{}
+	wait       sync.WaitGroup
 }
 
 type Logger interface {
 	Init() error
-	Write(s string) error
-	Flush() error
+	Write(s *msgFmt)
+	Flush()
 	Logger() gin.HandlerFunc
 }
 
@@ -91,13 +114,31 @@ func Default() *gin.Engine {
 }
 
 func NewLogger() Logger {
-	return &logger{
-		filename:  defaultAccessLoggerFile,
-		filePath:  defaultLoggerPath,
-		format:    defaultLoggerFormat,
-		skipPaths: defaultSkipPaths,
-		lock:      sync.Mutex{},
+	var (
+		signalChan = make(chan struct{}, 1)
+		logChan    = make(chan *msgFmt, 10)
+		wait       = sync.WaitGroup{}
+		lock       = sync.Mutex{}
+	)
+
+	l := &logger{
+		filename:   defaultAccessLoggerFile,
+		filePath:   defaultLoggerPath,
+		format:     defaultLoggerFormat,
+		skipPaths:  defaultSkipPaths,
+		lock:       lock,
+		logChan:    logChan,
+		signalChan: signalChan,
+		wait:       wait,
 	}
+
+	go func() {
+		for {
+			l.handle()
+		}
+	}()
+
+	return l
 }
 
 func (l *logger) Init() error {
@@ -118,12 +159,26 @@ func (l *logger) Init() error {
 	if err != nil {
 		return err
 	}
+
 	l.writer = writer
 	l.startTime = time.Now().Unix()
+
 	return nil
 }
 
-func (l *logger) Write(s string) error {
+func (l *logger) handle() {
+	for {
+		select {
+		case msg := <-l.logChan:
+			l.write(msg)
+			l.wait.Done()
+		case <-l.signalChan:
+			l.flush()
+		}
+	}
+}
+
+func (l *logger) write(msg *msgFmt) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -133,16 +188,14 @@ func (l *logger) Write(s string) error {
 		filenameSuffix = path.Ext(l.filename)
 		startTime      = time.Unix(l.startTime, 0)
 		now            = time.Now()
-		format         = l.format
+		timeFormat     = l.format
 		oldFilename    string
+		err            error
 	)
 
-	if startTime.Format(format) != now.Format(format) {
-		err := l.Flush()
-		if err != nil {
-			return err
-		}
-		oldFilename = strings.Replace(filename, filenameSuffix, "", 1) + "." + startTime.Format(l.format) + filenameSuffix
+	if startTime.Format(timeFormat) != now.Format(timeFormat) {
+		l.flush()
+		oldFilename = strings.Replace(filename, filenameSuffix, "", 1) + "." + startTime.Format(timeFormat) + filenameSuffix
 		if err = syscall.Rename(path.Join(filePath, filename), path.Join(filePath, oldFilename)); err != nil {
 			return err
 		}
@@ -150,12 +203,33 @@ func (l *logger) Write(s string) error {
 			return err
 		}
 	}
-	_, err := l.writer.Write([]byte(s))
+
+	log := defaultLogFormatter(msg)
+	_, err = l.writer.Write([]byte(log))
+
 	return err
 }
 
-func (l *logger) Flush() error {
-	return l.writer.Close()
+func (l *logger) flush() {
+	for {
+		if len(l.logChan) > 0 {
+			msg := <-l.logChan
+			l.write(msg)
+			l.wait.Done()
+		}
+		break
+	}
+	l.writer.Close()
+}
+
+func (l *logger) Write(msg *msgFmt) {
+	l.wait.Add(1)
+	l.logChan <- msg
+}
+
+func (l *logger) Flush() {
+	l.signalChan <- struct{}{}
+	l.wait.Wait()
 }
 
 // access log
@@ -171,6 +245,9 @@ func (l *logger) Logger() gin.HandlerFunc {
 		}
 	}
 
+	appName := system.GetAppName()
+	appInstance := system.GetAppInstance()
+
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
@@ -181,54 +258,52 @@ func (l *logger) Logger() gin.HandlerFunc {
 		c.Next()
 
 		if _, ok := skip[urlPath]; !ok {
-			// Log only when path is not being skipped
-			param := gin.LogFormatterParams{
-				Request: c.Request,
-				Keys:    c.Keys,
+			timestamp := time.Now()
+			param := &msgFmt{
+				RequestTime:        timestamp.Format("2006/01/02:15:04:05"),
+				ThreadName:         "-",
+				AccessIp:           c.ClientIP(),
+				AppName:            appName,
+				AppInstance:        appInstance,
+				RequestAppName:     "-",
+				RequestAppInstance: "-",
+				TraceId:            "-",
+				SpanId:             "-",
+				ParentId:           "-",
+				Method:             c.Request.Method,
+				URL:                urlPath,
+				Protocol:           c.Request.Proto,
+				StatusCode:         c.Writer.Status(),
+				BodySize:           c.Writer.Size(),
+				Latency:            timestamp.Sub(start),
+				Query:              raw,
 			}
 
-			// Stop timer
-			param.TimeStamp = time.Now()
-			param.Latency = param.TimeStamp.Sub(start)
-
-			param.ClientIP = c.ClientIP()
-			param.Method = c.Request.Method
-			param.StatusCode = c.Writer.Status()
-			param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
-
-			param.BodySize = c.Writer.Size()
-
-			if raw != "" {
-				urlPath = urlPath + "?" + raw
-			}
-
-			param.Path = urlPath
-			l.Write(defaultLogFormatter(param))
+			l.Write(param)
 		}
 	}
 }
 
 // defaultLogFormatter is the default log format function Logger middleware uses.
-var defaultLogFormatter = func(param gin.LogFormatterParams) string {
-	var statusColor, methodColor, resetColor string
-	if param.IsOutputColor() {
-		statusColor = param.StatusCodeColor()
-		methodColor = param.MethodColor()
-		resetColor = param.ResetColor()
-	}
-
-	if param.Latency > time.Minute {
-		// Truncate in a golang < 1.8 safe way
-		param.Latency = param.Latency - param.Latency%time.Second
-	}
-	return fmt.Sprintf("[GIN] %v |%s %3d %s| %13v | %15s |%s %-7s %s %s\n%s",
-		param.TimeStamp.Format("2006/01/02 - 15:04:05"),
-		statusColor, param.StatusCode, resetColor,
+func defaultLogFormatter(param *msgFmt) string {
+	return fmt.Sprintf("[%s]^%s^%s^%s^%s^%s^%s^%s^%s^%s^%s^%s^%s^%d^%v^%d^%s\n",
+		param.RequestTime,
+		param.ThreadName,
+		param.AccessIp,
+		param.AppName,
+		param.AppInstance,
+		param.RequestAppName,
+		param.RequestAppInstance,
+		param.TraceId,
+		param.SpanId,
+		param.ParentId,
+		param.Method,
+		param.URL,
+		param.Protocol,
+		param.StatusCode,
+		param.BodySize,
 		param.Latency,
-		param.ClientIP,
-		methodColor, param.Method, resetColor,
-		param.Path,
-		param.ErrorMessage,
+		param.Query,
 	)
 }
 
