@@ -77,7 +77,7 @@ func (dataSourceConfig *DataSourceConfig) dataSourceName(preferSlave bool) strin
 	if host == "" {
 		host = mysqlServer.Ip
 	}
-	timezone := "'Asia/Shanghai'"
+	timezone := "'+8:00'"
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		dataSourceConfig.Username,
 		pwd,

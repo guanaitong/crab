@@ -36,4 +36,12 @@ func TestGetDataSourceConfig(t *testing.T) {
 		return
 	}
 	t.Log(db)
+
+	err = db.Ping()
+	if !assert.NoError(t, err) {
+		t.Error(err.Error())
+		return
+	}
+
+	//db.Exec()
 }
