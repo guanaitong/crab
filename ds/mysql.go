@@ -10,6 +10,7 @@ import (
 	"github.com/guanaitong/crab/gconf"
 	"github.com/guanaitong/crab/util"
 	"github.com/guanaitong/crab/util/format"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -76,13 +77,14 @@ func (dataSourceConfig *DataSourceConfig) dataSourceName(preferSlave bool) strin
 	if host == "" {
 		host = mysqlServer.Ip
 	}
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8",
+	timezone := "'Asia/Shanghai'"
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		dataSourceConfig.Username,
 		pwd,
 		host,
 		mysqlServer.Port,
 		dataSourceConfig.DbName,
-	)
+	) + "?charset=utf8mb4&parseTime=true&loc=Local&time_zone=" + url.QueryEscape(timezone)
 }
 
 func (dataSourceConfig *DataSourceConfig) getParamValue(key string, defaultValue int) int {
