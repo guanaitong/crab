@@ -5,7 +5,7 @@ import "encoding/json"
 func AsString(v interface{}) string {
 	r, err := json.Marshal(v)
 	if err != nil {
-		return ""
+		return "{}"
 	}
 	return string(r)
 }
