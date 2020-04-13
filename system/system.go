@@ -19,7 +19,14 @@ var (
 	hostName, hostIp     string
 	instanceId           string
 	startTime            time.Time
+
+	errCodePrefix = 99
 )
+
+func Setup(appN string, errCodePrefix int) {
+	SetupAppName(appN)
+	SetupErrCodePrefix(errCodePrefix)
+}
 
 func SetupAppName(appN string) {
 	appNameFromEnv := os.Getenv("APP_NAME")
@@ -28,6 +35,13 @@ func SetupAppName(appN string) {
 	}
 	appName = appN
 	log.Printf("setupAppName %s", appName)
+}
+
+func SetupErrCodePrefix(errCodePrefixV int) {
+	if errCodePrefixV > 100 || errCodePrefixV < 0 {
+		panic("err code prefix is invalid")
+	}
+	errCodePrefix = errCodePrefixV
 }
 
 func init() {
@@ -128,6 +142,14 @@ func GetInstanceId() string {
 
 func GetStartTime() time.Time {
 	return startTime
+}
+
+func GetEnv(key string) string {
+	return getEnv(key, "")
+}
+
+func GetErrCodePrefix() int {
+	return errCodePrefix
 }
 
 func GetServiceDomainSuffix() string {

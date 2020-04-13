@@ -11,6 +11,9 @@ import (
 func TestNewError(t *testing.T) {
 	f := 11222221.231231111111
 	fmt.Println(f)
-	fmt.Println(strconv.FormatFloat(f, 'g', -1, 32))
-	errors2.NewDbError(errors.New("x"))
+	t.Log(f)
+	t.Logf(strconv.FormatFloat(f, 'g', -1, 32))
+	t.Logf("%#v", errors2.NewDbError(errors.New("x")))
+	t.Logf("%#v", errors2.NewBusinessError(33, "test"))
+
 }
