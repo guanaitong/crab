@@ -1,7 +1,7 @@
 package hc
 
 import (
-	"encoding/json"
+	"github.com/guanaitong/crab/json"
 	"io/ioutil"
 	"k8s.io/klog"
 	"net/http"

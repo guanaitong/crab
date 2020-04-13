@@ -1,4 +1,4 @@
-package ds
+package mysql
 
 import (
 	"crypto/rsa"
@@ -8,8 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/guanaitong/crab/gconf"
+	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/util"
-	"github.com/guanaitong/crab/util/format"
 	"net/url"
 	"strconv"
 	"strings"
@@ -149,7 +149,7 @@ func GetDataSourceConfig(key string) *DataSourceConfig {
 
 	dataSourceConfig := new(DataSourceConfig)
 	configValue := gconf.GetCurrentConfigCollection().GetConfig(key)
-	err := format.AsJson(configValue, dataSourceConfig)
+	err := json.UnmarshalFromString(configValue, dataSourceConfig)
 	if err != nil {
 		panic(err.Error())
 	}

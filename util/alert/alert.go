@@ -2,8 +2,8 @@ package alert
 
 import (
 	"bytes"
-	"encoding/json"
 	"github.com/guanaitong/crab/hc"
+	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/system"
 	"github.com/guanaitong/crab/util/runtime"
 	"log"

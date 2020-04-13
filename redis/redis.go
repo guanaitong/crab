@@ -1,12 +1,16 @@
-package ds
+package redis
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v7"
 	"github.com/guanaitong/crab/gconf"
+	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/system"
-	"github.com/guanaitong/crab/util/format"
+	"github.com/guanaitong/crab/util"
 	"strings"
 )
 
@@ -82,7 +86,7 @@ func GetRedisConfig(key string) *RedisConfig {
 
 	redisConfig := new(RedisConfig)
 	configValue := gconf.GetCurrentConfigCollection().GetConfig(key)
-	err := format.AsJson(configValue, redisConfig)
+	err := json.AsJson(configValue, redisConfig)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -90,5 +94,26 @@ func GetRedisConfig(key string) *RedisConfig {
 }
 
 func GetDefaultRedisConfig() *RedisConfig {
-	return GetRedisConfig(defaultDataSourceKey)
+	return GetRedisConfig(defaultRedisConfigKey)
+}
+
+func decrypt(encryptedPassword string) string {
+	if encryptedPassword == "" {
+		return ""
+	}
+	encryptedDecodeBytes, err := base64.StdEncoding.DecodeString(encryptedPassword)
+	if err != nil {
+		return ""
+	}
+	publicKey := gconf.GetGlobalConfigCollection().GetConfig("publicKey")
+	key, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return ""
+	}
+	pubKey, err := x509.ParsePKIXPublicKey(key)
+	if err != nil {
+		return ""
+	}
+	pub := pubKey.(*rsa.PublicKey)
+	return string(util.RsaPublicDecrypt(pub, encryptedDecodeBytes))
 }

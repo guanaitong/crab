@@ -3,8 +3,8 @@ package hc
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
+	"github.com/guanaitong/crab/json"
 	"io"
 	"mime/multipart"
 	"net"

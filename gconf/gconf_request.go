@@ -1,8 +1,8 @@
 package gconf
 
 import (
-	"encoding/json"
 	"errors"
+	"github.com/guanaitong/crab/json"
 	"io/ioutil"
 	"net/http"
 )

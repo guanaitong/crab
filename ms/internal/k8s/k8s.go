@@ -2,9 +2,9 @@ package k8s
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/guanaitong/crab/json"
 	"io/ioutil"
 	"net"
 	"os"

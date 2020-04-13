@@ -1,8 +1,8 @@
-package ds_test
+package mysql_test
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/guanaitong/crab/ds"
+	"github.com/guanaitong/crab/mysql"
 	"github.com/guanaitong/crab/system"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -20,8 +20,8 @@ func TestDecrypt(t *testing.T) {
 
 func TestGetDataSourceConfig(t *testing.T) {
 	system.SetupAppName("approval")
-	d := ds.GetDefaultDataSourceConfig()
-	//d := ds.GetDataSourceConfig("datasource.json")
+	d := mysql.GetDefaultDataSourceConfig()
+	//d := mysql.GetDataSourceConfig("datasource.json")
 	assert.NotNil(t, d)
 
 	m := d.MasterDataSourceName()

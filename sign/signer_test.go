@@ -2,8 +2,8 @@ package sign_test
 
 import (
 	"fmt"
+	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/sign"
-	"github.com/guanaitong/crab/util/format"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -91,7 +91,7 @@ func TestSignerDiffMethod(t *testing.T) {
 	//POST: json
 	params["x-req-content-type"] = "application/json; charset=UTF-8"
 	params["x-req-method"] = "POST"
-	params["x-req-length"] = fmt.Sprint(len(format.AsString(body)))
+	params["x-req-length"] = fmt.Sprint(len(json.AsString(body)))
 	t.Logf("%-4s: %s", params["x-req-method"],
 		sign.
 			NewSignerDefault().

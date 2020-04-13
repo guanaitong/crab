@@ -1,6 +1,7 @@
-package format
+package json_test
 
 import (
+	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/util"
 	"testing"
 )
@@ -17,7 +18,7 @@ func TestAsString(t *testing.T) {
 		"b": 9,
 		"c": []int{1, 2, 3},
 	}
-	if s := util.AsString(v); s == "" {
+	if s := json.AsString(v); s == "" {
 		t.Error("Format failure")
 	} else {
 		t.Log(s)
@@ -27,7 +28,7 @@ func TestAsString(t *testing.T) {
 func TestAsJson(t *testing.T) {
 	d := `{"a":"A","b":9,"c":[1,2,3]}`
 	v := &T{}
-	if err := util.AsJson(d, v); err != nil {
+	if err := json.AsJson(d, v); err != nil {
 		t.Error(err)
 	} else {
 		t.Log(v)
@@ -37,3 +38,4 @@ func TestAsJson(t *testing.T) {
 func TestInt32Ptr(t *testing.T) {
 	t.Log(util.Int32Ptr(1))
 }
+

@@ -2,7 +2,7 @@ package sign
 
 import (
 	"fmt"
-	"github.com/guanaitong/crab/util/format"
+	"github.com/guanaitong/crab/json"
 	"sort"
 	"strings"
 )
@@ -57,7 +57,7 @@ func (slf *Signer) SetFormData(form map[string]string) *Signer {
 
 func (slf *Signer) SetBody(body interface{}) *Signer {
 	if body != nil {
-		slf.params["x-req-body"] = format.AsString(body)
+		slf.params["x-req-body"] = json.AsString(body)
 	}
 	return slf
 }

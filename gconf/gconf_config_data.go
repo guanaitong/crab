@@ -3,8 +3,8 @@ package gconf
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/guanaitong/crab/json"
 	"strings"
 	//"strconv"
 	"reflect"

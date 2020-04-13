@@ -3,7 +3,7 @@ package sign
 import (
 	"errors"
 	"fmt"
-	"github.com/guanaitong/crab/util/format"
+	"github.com/guanaitong/crab/json"
 	"time"
 )
 
@@ -52,7 +52,7 @@ func (slf *Verifier) SetFormData(form map[string]string) *Verifier {
 
 func (slf *Verifier) SetBody(body interface{}) *Verifier {
 	if body != nil {
-		slf.params["x-req-body"] = format.AsString(body)
+		slf.params["x-req-body"] = json.AsString(body)
 	}
 	return slf
 }
