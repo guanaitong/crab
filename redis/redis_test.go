@@ -21,7 +21,7 @@ func TestGetRedisConfig(t *testing.T) {
 	d := redis.GetDefaultRedisConfig()
 	//d := mysql.GetRedisConfig("redis-config.json")
 	assert.NotNil(t, d)
-  
+
 	client := d.NewClient()
 	err := client.Set(key, value, 0).Err()
 	if !assert.NoError(t, err) {
@@ -55,7 +55,6 @@ func TestSentinel(t *testing.T) {
 
 	assert.EqualValues(t, expected, actual)
 }
-
 
 type User struct {
 	Id   int

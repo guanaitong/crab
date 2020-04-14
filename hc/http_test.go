@@ -51,6 +51,7 @@ func TestPostJson(t *testing.T) {
 	fmt.Println(fmt.Sprint(m))
 }
 
+/*
 func TestPostFormFile(t *testing.T) {
 	params := map[string]interface{}{
 		"FormFile": "",
@@ -70,3 +71,4 @@ func TestPostFormFile(t *testing.T) {
 		t.Log(resp.StatusCode(), resp.AsString())
 	}
 }
+*/

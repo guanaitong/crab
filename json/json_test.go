@@ -38,4 +38,3 @@ func TestAsJson(t *testing.T) {
 func TestInt32Ptr(t *testing.T) {
 	t.Log(util.Int32Ptr(1))
 }
-

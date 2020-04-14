@@ -1,7 +1,7 @@
 package sign
 
 import (
-	""
+	jsonO "encoding/json"
 	"fmt"
 	"strconv"
 )
@@ -11,8 +11,8 @@ func convertToInt64(val interface{}) int64 {
 		return 0
 	}
 	switch val.(type) {
-	case json.Number:
-		i, _ := val.(json.Number).Int64()
+	case jsonO.Number:
+		i, _ := val.(jsonO.Number).Int64()
 		return i
 	case int:
 		return int64(val.(int))

@@ -83,7 +83,7 @@ func (c *LocalCache) Get(key string, v interface{}, loader Loader) bool {
 		if c.Expiration > 0 {
 			expireIn = int64(c.Expiration/time.Millisecond) + t
 		}
-		c.Data[key] = &localValue{value: bs, expireIn: expireIn,}
+		c.Data[key] = &localValue{value: bs, expireIn: expireIn}
 		err = json.Unmarshal(bs, v)
 		if err != nil {
 			klog.Warningf("key %s value %s 反序列化失败", key, string(bs))
