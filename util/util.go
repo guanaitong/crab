@@ -70,6 +70,13 @@ func CopyStruct(dst, src interface{}) {
 			reflect.Float32, reflect.Float64,
 			reflect.Bool, reflect.String:
 			dfv.Set(sfv)
+		case reflect.Struct:
+			if sfv.Type() != dfv.Type() {
+				continue
+			}
+			if "time.Time" == sfv.Type().String() {
+				dfv.Set(sfv)
+			}
 		}
 	}
 }
