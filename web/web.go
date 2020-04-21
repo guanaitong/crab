@@ -6,6 +6,7 @@ import (
 	"github.com/guanaitong/crab/system"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -77,9 +78,16 @@ func Setup(rootPath string, r *gin.RouterGroup, controller Controller) {
 	handleMethods := controller.RequestMappings()
 	for _, handleMethod := range handleMethods {
 		method := handleMethod.Method
+		if method == "*" {
+			rg.Any(handleMethod.Path, handleMethod.HandlerFunc)
+			continue
+		}
 		if method == "" {
 			method = "GET"
 		}
-		rg.Handle(method, handleMethod.Path, handleMethod.HandlerFunc)
+		methods := strings.Split(method, ",")
+		for _, m := range methods {
+			rg.Handle(m, handleMethod.Path, handleMethod.HandlerFunc)
+		}
 	}
 }
