@@ -67,13 +67,17 @@ type Controller interface {
 	RequestMappings() []Handler
 }
 
+type GinGrouper interface {
+	Group(relativePath string, handlers ...gin.HandlerFunc) *gin.RouterGroup
+}
+
 type Handler struct {
 	Method      string
 	Path        string
 	HandlerFunc gin.HandlerFunc
 }
 
-func Setup(rootPath string, r *gin.RouterGroup, controller Controller) {
+func Setup(rootPath string, r GinGrouper, controller Controller) {
 	rg := r.Group(rootPath)
 	handleMethods := controller.RequestMappings()
 	for _, handleMethod := range handleMethods {
