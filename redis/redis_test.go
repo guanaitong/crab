@@ -3,6 +3,7 @@ package redis_test
 import (
 	"fmt"
 	cache2 "github.com/guanaitong/crab/cache"
+	errors2 "github.com/guanaitong/crab/errors"
 	"github.com/guanaitong/crab/redis"
 	"github.com/guanaitong/crab/system"
 	"github.com/stretchr/testify/assert"
@@ -67,26 +68,26 @@ func TestRedisCache_Get(t *testing.T) {
 	var cache cache2.Cache = &redis.RedisCache{Client: redis.GetDefaultRedisConfig().NewClient(), Prefix: "Test", Expiration: time.Hour}
 	cache.Invalidate("1")
 	user := new(User)
-	b := cache.Get("1", user, func() interface{} {
+	b := cache.Get("1", user, func() (interface{}, errors2.Error) {
 		return &User{
 			Id:   123456789,
 			Name: "august",
 			Time: time.Now(),
-		}
+		}, nil
 	})
-	if b {
+	if b != nil {
 		t.Fail()
 	}
 	user2 := new(User)
 
-	b = cache.Get("1", user2, func() interface{} {
+	b = cache.Get("1", user2, func() (interface{}, errors2.Error) {
 		return &User{
 			Id:   123456789,
 			Name: "august",
 			Time: time.Now(),
-		}
+		}, nil
 	})
-	if !b {
+	if b != nil {
 		t.Fail()
 	}
 

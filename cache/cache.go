@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"github.com/guanaitong/crab/errors"
 	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/util/task"
 	"k8s.io/klog"
@@ -9,10 +10,10 @@ import (
 )
 
 // Loader必须返回一个对象的指针
-type Loader func() interface{}
+type Loader func() (interface{}, errors.Error)
 
 type Cache interface {
-	Get(key string, v interface{}, loader Loader) bool
+	Get(key string, v interface{}, loader Loader) errors.Error
 	Invalidate(key string) bool
 }
 
@@ -56,14 +57,14 @@ type localValue struct {
 	expireIn int64
 }
 
-func (c *LocalCache) Get(key string, v interface{}, loader Loader) bool {
+func (c *LocalCache) Get(key string, v interface{}, loader Loader) errors.Error {
 	t := time.Now().Unix()
 	d, ok := c.Data[key]
 	if ok {
 		if d.expireIn == 0 || t < d.expireIn {
 			err := json.Unmarshal(d.value, v)
 			if err == nil {
-				return true
+				return nil
 			} else {
 				klog.Warningf("key %s value %s 反序列化失败", key, string(d.value))
 			}
@@ -71,13 +72,17 @@ func (c *LocalCache) Get(key string, v interface{}, loader Loader) bool {
 			c.Invalidate(key)
 		}
 	}
-	value := loader()
+	value, e := loader()
+	if e != nil {
+		return e
+	}
 	if value == nil {
-		return false
+		return nil
 	}
 	bs, err := json.Marshal(value)
 	if err != nil {
 		klog.Warningf("key %s value %v 序列化失败", key, value)
+		return errors.NewParamError(0, "序列化失败:"+err.Error())
 	} else {
 		var expireIn int64
 		if c.Expiration > 0 {
@@ -87,9 +92,10 @@ func (c *LocalCache) Get(key string, v interface{}, loader Loader) bool {
 		err = json.Unmarshal(bs, v)
 		if err != nil {
 			klog.Warningf("key %s value %s 反序列化失败", key, string(bs))
+			return errors.NewParamError(0, err.Error())
 		}
 	}
-	return false
+	return nil
 }
 
 func (c *LocalCache) Invalidate(key string) bool {
