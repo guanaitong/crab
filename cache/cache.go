@@ -1,12 +1,14 @@
 package cache
 
 import (
+	"sync"
+	"time"
+
+	"k8s.io/klog"
+
 	"github.com/guanaitong/crab/errors"
 	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/util/task"
-	"k8s.io/klog"
-	"sync"
-	"time"
 )
 
 // Loader必须返回一个对象的指针
@@ -36,7 +38,7 @@ func NewLocalCache(Expiration time.Duration) Cache {
 func initCleanTaskForLocalCache() {
 	task.StartBackgroundTask("clear_local_cache", time.Second*60, func() {
 		for _, localCache := range localCaches {
-			t := time.Now().Unix()
+			t := time.Now().UnixNano() / 1e6
 			var toDeleteKeys []string
 			for k, v := range localCache.Data {
 				if v.expireIn == 0 || t < v.expireIn {
@@ -58,7 +60,7 @@ type localValue struct {
 }
 
 func (c *LocalCache) Get(key string, v interface{}, loader Loader) errors.Error {
-	t := time.Now().Unix()
+	t := time.Now().UnixNano() / 1e6
 	d, ok := c.Data[key]
 	if ok {
 		if d.expireIn == 0 || t < d.expireIn {
