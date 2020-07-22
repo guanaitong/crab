@@ -6,8 +6,7 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-	system.Setup("TestApp", 99)
+	system.SetupAppName("TestApp")
 	t.Log(system.GetAppName())
-	t.Log(system.GetErrCodePrefix())
 	t.Log(system.GetEnv("none"))
 }
