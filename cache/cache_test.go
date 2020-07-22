@@ -3,7 +3,6 @@ package cache_test
 import (
 	"fmt"
 	cache2 "github.com/guanaitong/crab/cache"
-	errors2 "github.com/guanaitong/crab/errors"
 	"testing"
 	"time"
 )
@@ -20,7 +19,7 @@ func TestRedisCache_Get(t *testing.T) {
 
 	cache.Invalidate("1")
 	user := new(User)
-	b := cache.Get("1", user, func() (interface{}, errors2.Error) {
+	b := cache.Get("1", user, func() (interface{}, error) {
 		return &User{
 			Id:   123456789,
 			Name: "august",
@@ -32,7 +31,7 @@ func TestRedisCache_Get(t *testing.T) {
 	}
 	user2 := new(User)
 
-	b = cache.Get("1", user2, func() (interface{}, errors2.Error) {
+	b = cache.Get("1", user2, func() (interface{}, error) {
 		return &User{
 			Id:   123456789,
 			Name: "august",
