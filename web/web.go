@@ -8,8 +8,6 @@ import (
 )
 
 var (
-	codeKey        = http.CanonicalHeaderKey("x-error-code")
-	msgKey         = http.CanonicalHeaderKey("x-error-msg")
 	appNameKey     = http.CanonicalHeaderKey("x-app-name")
 	appInstanceKey = http.CanonicalHeaderKey("x-app-instance")
 )
