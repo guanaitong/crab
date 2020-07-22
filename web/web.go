@@ -2,10 +2,8 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/guanaitong/crab/errors"
 	"github.com/guanaitong/crab/system"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -34,19 +32,13 @@ type ApiResponse struct {
 }
 
 func Success(c *gin.Context, data interface{}) {
-	Write(c, &ApiResponse{Code: errors.OK, Msg: "OK", Data: data})
+	Write(c, http.StatusOK, data)
 }
 
-func Fail(c *gin.Context, err errors.Error) {
-	Write(c, &ApiResponse{Code: err.ErrorCode(), Msg: err.ErrorMsg(), Data: nil})
-}
-
-func Write(c *gin.Context, apiResponse *ApiResponse) {
-	c.Header(codeKey, strconv.Itoa(apiResponse.Code))
-	c.Header(msgKey, apiResponse.Msg)
+func Write(c *gin.Context, code int, data interface{}) {
 	c.Header(appNameKey, system.GetAppName())
 	c.Header(appInstanceKey, system.GetAppInstance())
-	c.JSON(http.StatusOK, apiResponse)
+	c.JSON(code, data)
 	c.Abort()
 }
 
