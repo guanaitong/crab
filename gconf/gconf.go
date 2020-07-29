@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var cache = map[string]*ConfigCollection{}
+var cache = map[string]*Config{}
 var baseUrl string
 var mux = new(sync.Mutex)
 
@@ -44,18 +44,18 @@ func init() {
 }
 
 // 获取当前应用的配置集合
-func GetCurrentConfigCollection() *ConfigCollection {
-	return GetConfigCollection(system.GetAppName())
+func GetCurrentConfig() *Config {
+	return GetConfig(system.GetAppName())
 }
 
 // 获取全局的配置配置集合，此方法用于框架的统一配置。
 // 应用不需要调用此方法
-func GetGlobalConfigCollection() *ConfigCollection {
-	return GetConfigCollection("golang")
+func GetGlobalConfig() *Config {
+	return GetConfig("golang")
 }
 
 // 获取某个appId的配置集合
-func GetConfigCollection(appId string) *ConfigCollection {
+func GetConfig(appId string) *Config {
 	res, ok := cache[appId]
 	if ok {
 		return res
@@ -76,10 +76,10 @@ func GetConfigCollection(appId string) *ConfigCollection {
 		return nil
 	}
 
-	res = &ConfigCollection{
+	res = &Config{
 		appId:     appId,
 		name:      configApp["name"],
-		data:      map[string]*configData{},
+		data:      map[string]*Value{},
 		listeners: map[string][]ConfigChangeListener{},
 	}
 	res.refreshData()

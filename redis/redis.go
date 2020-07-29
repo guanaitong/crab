@@ -85,7 +85,7 @@ func GetRedisConfig(key string) *RedisConfig {
 	}
 
 	redisConfig := new(RedisConfig)
-	configValue := gconf.GetCurrentConfigCollection().GetConfig(key)
+	configValue := gconf.GetCurrentConfig().GetValue(key).Raw()
 	err := json.AsJson(configValue, redisConfig)
 	if err != nil {
 		panic(err.Error())
@@ -105,7 +105,7 @@ func decrypt(encryptedPassword string) string {
 	if err != nil {
 		return ""
 	}
-	publicKey := gconf.GetGlobalConfigCollection().GetConfig("publicKey")
+	publicKey := gconf.GetGlobalConfig().GetValue("publicKey").Raw()
 	key, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
 		return ""

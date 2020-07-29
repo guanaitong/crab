@@ -1,7 +1,6 @@
 package gconf
 
 import (
-	"errors"
 	"log"
 )
 
@@ -12,14 +11,15 @@ import (
 type ConfigChangeListener func(key, oldValue, newValue string)
 
 // 配置集合
-type ConfigCollection struct {
+type Config struct {
 	appId     string
 	name      string
-	data      map[string]*configData //这里用map不线程安全不要紧，数据不会从map中移除，value指针会替换
+	data      map[string]*Value //这里用map不线程安全不要紧，数据不会从map中移除，value指针会替换
 	listeners map[string][]ConfigChangeListener
 }
 
-func (c *ConfigCollection) getConfigData(key string) *configData {
+// 获取key对应的配置
+func (c *Config) GetValue(key string) *Value {
 	res, ok := c.data[key]
 	if ok {
 		return res
@@ -27,48 +27,17 @@ func (c *ConfigCollection) getConfigData(key string) *configData {
 	return nil
 }
 
-// 获取key对应的rawValue，原始文本内容
-// 用户可以自己拿到rawValue做解析
-func (c *ConfigCollection) GetConfig(key string) string {
-	v := c.getConfigData(key)
-	if v == nil {
-		return ""
-	}
-	return v.raw
-}
-
-// 如果key是properties或者json类型，那么gconf会自动把key对应的文本转换为map结构
-// 该方法即用于获取转换后的map
-func (c *ConfigCollection) GetConfigAsStructuredMap(key string) map[string]*Field {
-	v := c.getConfigData(key)
-	if v == nil {
-		return map[string]*Field{}
-	}
-	return v.structuredData
-}
-
-// 如果key是properties或者json类型，那么gconf会自动把key对应的文本转换为map结构
-// 该方法会自动基于map数据结构，给传入的value的field赋予值。
-// value为指针。用法类似json.Unmarshal
-func (c *ConfigCollection) GetConfigAsBean(key string, value interface{}) error {
-	v := c.getConfigData(key)
-	if v == nil {
-		return errors.New("the value of key[" + key + "] is null")
-	}
-	return v.unmarshal(value)
-}
-
 // 获取配置结合中所有的key-value，以map返回。
-func (c *ConfigCollection) AsMap() map[string]string {
+func (c *Config) AsMap() map[string]string {
 	res := make(map[string]string)
 	data := c.data // copy to avoid pointer change
 	for k, v := range data {
-		res[k] = v.raw
+		res[k] = v.Raw()
 	}
 	return res
 }
 
-func (c *ConfigCollection) AddConfigChangeListener(key string, configChangeListener ConfigChangeListener) {
+func (c *Config) AddConfigChangeListener(key string, configChangeListener ConfigChangeListener) {
 	v, ok := c.listeners[key]
 	if !ok {
 		v = make([]ConfigChangeListener, 0, 1)
@@ -77,8 +46,8 @@ func (c *ConfigCollection) AddConfigChangeListener(key string, configChangeListe
 	c.listeners[key] = v
 }
 
-func (c *ConfigCollection) refreshData() {
-	newDataMap, err := getStructuredDataMap(c.appId)
+func (c *Config) refreshData() {
+	newDataMap, err := getAppConfigs(c.appId)
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -86,42 +55,28 @@ func (c *ConfigCollection) refreshData() {
 	if len(newDataMap) == 0 {
 		return
 	}
-	oldDataMap := c.data
-	if len(oldDataMap) == 0 {
-		c.data = newDataMap
-		return
-	}
-	if configDataEqual(newDataMap, oldDataMap) {
-		return
-	}
-	finalDataMap := map[string]*configData{}
-	for key, oldValue := range oldDataMap {
+	dataMap := c.data
+	for key, oldValue := range dataMap {
 		newValue, ok := newDataMap[key]
 		if ok {
-			if newValue.raw == oldValue.raw { //没改变，还是用老的值
-				finalDataMap[key] = oldValue
-			} else {
-				finalDataMap[key] = newValue
-				c.fireValueChanged(key, oldValue.raw, newValue.raw)
-
+			o := oldValue.value
+			if oldValue.refresh(newValue) {
+				c.fireValueChanged(key, o, newValue)
 			}
 		} else { //老的有，但新的没有，先不从缓存里删除，避免程序出错。
-			finalDataMap[key] = oldValue
-			c.fireValueChanged(key, oldValue.raw, "")
+			c.fireValueChanged(key, oldValue.value, "")
 		}
-
 	}
-	for key, newValue := range newDataMap {
-		_, ok := oldDataMap[key]
+	for key, newV := range newDataMap {
+		_, ok := dataMap[key]
 		if !ok {
-			finalDataMap[key] = newValue
-			c.fireValueChanged(key, "", newValue.raw)
+			dataMap[key] = newValue(key, newV)
+			c.fireValueChanged(key, "", newV)
 		}
 	}
-	c.data = finalDataMap
 }
 
-func (c *ConfigCollection) fireValueChanged(key, oldValue, newValue string) {
+func (c *Config) fireValueChanged(key, oldValue, newValue string) {
 	log.Printf("valueChanged,configCollectionId %s,key %s,oldValue:\n%s,newValue:\n%s", c.appId, key, oldValue, newValue)
 	if listeners, ok := c.listeners[key]; ok {
 		for _, listener := range listeners {
@@ -131,39 +86,14 @@ func (c *ConfigCollection) fireValueChanged(key, oldValue, newValue string) {
 	log.Printf("firedValueChanged,configCollectionId %s,key %s", c.appId, key)
 }
 
-func configDataEqual(v1, v2 map[string]*configData) bool {
-	if len(v1) != len(v2) {
-		return false
-	}
-	for key, value := range v1 {
-		vv, ok := v2[key]
-		if !ok {
-			return false
-		}
-		if vv.raw != value.raw {
-			return false
-		}
-	}
-	for key, value := range v2 {
-		vv, ok := v1[key]
-		if !ok {
-			return false
-		}
-		if vv.raw != value.raw {
-			return false
-		}
-	}
-	return true
-}
-
-func getStructuredDataMap(appId string) (map[string]*configData, error) {
+func getAppConfigs(appId string) (map[string]string, error) {
 	dataMap, err := httpGetMapResp(baseUrl + "/api/listConfigs?configAppId=" + appId)
 	if err != nil {
 		return nil, err
 	}
-	structuredDataMap := make(map[string]*configData)
+	structuredDataMap := make(map[string]string)
 	for k, v := range dataMap {
-		structuredDataMap[k] = toStructuredData(k, v)
+		structuredDataMap[k] = v
 	}
 	return structuredDataMap, nil
 }
