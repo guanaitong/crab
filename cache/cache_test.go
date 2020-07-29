@@ -1,49 +1,30 @@
 package cache_test
 
 import (
-	"fmt"
-	cache2 "github.com/guanaitong/crab/cache"
+	"github.com/guanaitong/crab/cache"
+	"github.com/guanaitong/crab/util"
 	"testing"
 	"time"
 )
 
-type User struct {
-	Id   int
-	Name string
-	Time time.Time
-}
-
-func TestRedisCache_Get(t *testing.T) {
-	var cache = cache2.NewLocalCache(time.Minute)
-	cache2.NewLocalCache(time.Minute)
-
-	cache.Invalidate("1")
-	user := new(User)
-	b := cache.Get("1", user, func() (interface{}, error) {
-		return &User{
-			Id:   123456789,
-			Name: "august",
-			Time: time.Now(),
-		}, nil
-	})
-	if b != nil {
+func TestLocalCache(t *testing.T) {
+	var c = cache.NewLocalCache()
+	c.Set("123", util.StringToBytes("456"), 0)
+	v, err := c.Get("123")
+	if err == nil && util.BytesToString(v) == "456" {
+		t.Log("sucess")
+	} else {
 		t.Fail()
 	}
-	user2 := new(User)
-
-	b = cache.Get("1", user2, func() (interface{}, error) {
-		return &User{
-			Id:   123456789,
-			Name: "august",
-			Time: time.Now(),
-		}, nil
-	})
-	if b != nil {
+	v, err = c.Get("1234")
+	if err != cache.ErrEntryNotFound {
 		t.Fail()
 	}
 
-	if *user != *user2 {
+	c.Set("123", util.StringToBytes("789"), time.Second)
+	time.Sleep(time.Second * 2)
+	v, err = c.Get("123")
+	if err != cache.ErrEntryNotFound {
 		t.Fail()
 	}
-	fmt.Println(b)
 }

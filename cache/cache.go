@@ -1,111 +1,22 @@
 package cache
 
 import (
-	"fmt"
-	"sync"
+	"errors"
 	"time"
-
-	"k8s.io/klog"
-
-	"github.com/guanaitong/crab/json"
-	"github.com/guanaitong/crab/util/task"
 )
 
-// Loader必须返回一个对象的指针
-type Loader func() (interface{}, error)
+// ErrEntryNotFound is an error type struct which is returned when entry was not found for provided key
+var ErrEntryNotFound = errors.New("Entry not found")
 
 type Cache interface {
-	Get(key string, v interface{}, loader Loader) error
-	Invalidate(key string) bool
-}
-
-type LocalCache struct {
-	Data       map[string]*localValue
-	Expiration time.Duration
-}
-
-var once sync.Once
-
-var localCaches []*LocalCache
-
-func NewLocalCache(Expiration time.Duration) Cache {
-	cache := &LocalCache{Expiration: Expiration, Data: map[string]*localValue{}}
-	localCaches = append(localCaches, cache)
-	once.Do(initCleanTaskForLocalCache)
-	return cache
-}
-
-func initCleanTaskForLocalCache() {
-	task.StartBackgroundTask("clear_local_cache", time.Second*60, func() {
-		for _, localCache := range localCaches {
-			t := time.Now().UnixNano() / 1e6
-			var toDeleteKeys []string
-			for k, v := range localCache.Data {
-				if v.expireIn == 0 || t < v.expireIn {
-					continue
-				} else {
-					toDeleteKeys = append(toDeleteKeys, k)
-				}
-			}
-			for _, k := range toDeleteKeys {
-				delete(localCache.Data, k)
-			}
-		}
-	})
-}
-
-type localValue struct {
-	value    []byte
-	expireIn int64
-}
-
-func (c *LocalCache) Get(key string, v interface{}, loader Loader) error {
-	t := time.Now().UnixNano() / 1e6
-	d, ok := c.Data[key]
-	if ok {
-		if d.expireIn == 0 || t < d.expireIn {
-			err := json.Unmarshal(d.value, v)
-			if err == nil {
-				return nil
-			} else {
-				klog.Warningf("key %s value %s 反序列化失败", key, string(d.value))
-			}
-		} else { //数据已经过期
-			c.Invalidate(key)
-		}
-	}
-	value, e := loader()
-	if e != nil {
-		return e
-	}
-	if value == nil {
-		return nil
-	}
-	bs, err := json.Marshal(value)
-	if err != nil {
-		klog.Warningf("key %s value %v 序列化失败", key, value)
-		return fmt.Errorf("key %s value %v 序列化失败,%w", key, value, err)
-	} else {
-		var expireIn int64
-		if c.Expiration > 0 {
-			expireIn = int64(c.Expiration/time.Millisecond) + t
-		}
-		c.Data[key] = &localValue{value: bs, expireIn: expireIn}
-		err = json.Unmarshal(bs, v)
-		if err != nil {
-			klog.Warningf("key %s value %s 反序列化失败", key, string(bs))
-			return fmt.Errorf("key %s value %s 反序列化失败%w", key, string(bs), err)
-		}
-	}
-	return nil
-}
-
-func (c *LocalCache) Invalidate(key string) bool {
-	time.Now().Unix()
-	_, ok := c.Data[key]
-	if ok {
-		delete(c.Data, key)
-		return true
-	}
-	return false
+	// Get reads entry for the key.
+	// It returns an ErrEntryNotFound when
+	// no entry exists for the given key.
+	Get(key string) ([]byte, error)
+	// Set saves entry under the key
+	Set(key string, entry []byte, ex time.Duration) error
+	// Delete removes the key
+	Delete(key string) error
+	// Reset empties all cache shards
+	Reset() error
 }

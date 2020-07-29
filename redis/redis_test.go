@@ -1,10 +1,10 @@
 package redis_test
 
 import (
-	"fmt"
-	cache2 "github.com/guanaitong/crab/cache"
+	"github.com/guanaitong/crab/cache"
 	"github.com/guanaitong/crab/redis"
 	"github.com/guanaitong/crab/system"
+	"github.com/guanaitong/crab/util"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -56,42 +56,26 @@ func TestSentinel(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-type User struct {
-	Id   int
-	Name string
-	Time time.Time
-}
-
-func TestRedisCache_Get(t *testing.T) {
+func TestLocalCache(t *testing.T) {
 	system.SetupAppName("for-test-java")
-	var cache cache2.Cache = &redis.RedisCache{Client: redis.GetDefaultRedisConfig().NewClient(), Prefix: "Test", Expiration: time.Hour}
-	cache.Invalidate("1")
-	user := new(User)
-	b := cache.Get("1", user, func() (interface{}, error) {
-		return &User{
-			Id:   123456789,
-			Name: "august",
-			Time: time.Now(),
-		}, nil
-	})
-	if b != nil {
+
+	var c = redis.NewRedisCache("test", redis.GetDefaultRedisConfig().NewClient())
+	c.Set("123", util.StringToBytes("456"), 0)
+	v, err := c.Get("123")
+	if err == nil && util.BytesToString(v) == "456" {
+		t.Log("sucess")
+	} else {
 		t.Fail()
 	}
-	user2 := new(User)
-
-	b = cache.Get("1", user2, func() (interface{}, error) {
-		return &User{
-			Id:   123456789,
-			Name: "august",
-			Time: time.Now(),
-		}, nil
-	})
-	if b != nil {
+	v, err = c.Get("1234")
+	if err != cache.ErrEntryNotFound {
 		t.Fail()
 	}
 
-	if *user != *user2 {
+	c.Set("123", util.StringToBytes("789"), time.Second)
+	time.Sleep(time.Second * 2)
+	v, err = c.Get("123")
+	if err != cache.ErrEntryNotFound {
 		t.Fail()
 	}
-	fmt.Println(b)
 }
