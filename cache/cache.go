@@ -14,7 +14,8 @@ type Cache interface {
 	// no entry exists for the given key.
 	Get(key string) ([]byte, error)
 	// Set saves entry under the key
-	Set(key string, entry []byte, ex time.Duration) error
+	// If expire is zero,the entry value save forever
+	Set(key string, entry []byte, expire time.Duration) error
 	// Delete removes the key
 	Delete(key string) error
 	// Reset empties all cache shards
