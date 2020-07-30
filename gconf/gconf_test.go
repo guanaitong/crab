@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 type es struct {
@@ -26,27 +27,28 @@ func TestGetConfigCollection(t *testing.T) {
 	d1 := gconf.GetConfigCollection("impower")
 	t.Log(d1, d1.AsMap())
 
-	dm1 := d1.GetConfigAsStructuredMap("deny.properties")
+	dm1 := d1.GetValue("deny.properties")
 	t.Log(dm1)
 
 	imp := new(impower)
-	if err := d1.GetConfigAsBean("deny.properties", imp); err != nil {
+	if err := d1.GetValue("deny.properties").Register(imp); err != nil {
 		t.Error(err)
 	} else {
 		t.Logf("%+v\n", imp)
 	}
 
+	time.Sleep(time.Minute*10)
+
 	t.Log("[userdoor]------------------------------")
 	c := gconf.GetConfigCollection("userdoor")
-	v1 := c.GetConfig("es.properties")
+	v1 := c.GetValue("es.properties")
 	t.Log(v1, v1, c.AsMap())
 
 	c1 := gconf.GetConfigCollection("userdoor")
 	t.Log(c1.AsMap())
 
 	p := new(es)
-	v2 := c1.GetConfigAsStructuredMap("es.properties")
-	c1.GetConfigAsBean("es.properties", p)
+	v2 := c1.GetValue("es.properties").Register(p)
 	t.Log(v2, p)
 
 }

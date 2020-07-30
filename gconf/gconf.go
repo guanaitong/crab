@@ -2,45 +2,85 @@ package gconf
 
 import (
 	"github.com/guanaitong/crab/system"
-	"github.com/guanaitong/crab/util/task"
-	"log"
-	"strings"
 	"sync"
 	"time"
 )
 
-var cache = map[string]*ConfigCollection{}
-var baseUrl string
-var mux = new(sync.Mutex)
+var ds *dataStore
 
 func init() {
+	domain := ""
 	if system.InK8s() {
-		baseUrl = "http://gconf.kube-system"
+		domain = "gconf.kube-system"
 	} else {
-		baseUrl = "http://gconf" + system.GetServiceDomainSuffix()
+		domain = "gconf" + system.GetServiceDomainSuffix()
+	}
+	client := &gConfHttpClient{
+		baseUrl: "http://" + domain + "/api",
+	}
+	ds = &dataStore{
+		dataCache: map[string]*ConfigCollection{},
+		client:    client,
+		mux:       new(sync.Mutex),
+	}
+	ds.startBackgroundTask()
+}
+
+type dataStore struct {
+	dataCache map[string]*ConfigCollection
+	client    *gConfHttpClient
+	mux       *sync.Mutex
+}
+
+func (ds *dataStore) startBackgroundTask() {
+	go func() {
+		for {
+			if len(ds.dataCache) == 0 {
+				time.Sleep(time.Second * 2)
+				continue
+			}
+			var appIdList []string
+			for k := range ds.dataCache {
+				appIdList = append(appIdList, k)
+			}
+			needChangeAppIdList := ds.client.watch(appIdList)
+
+			for _, appId := range needChangeAppIdList {
+				ds.dataCache[appId].refreshData(ds.client)
+			}
+		}
+	}()
+}
+
+func (ds *dataStore) getConfigCollection(appId string) *ConfigCollection {
+	res, ok := ds.dataCache[appId]
+	if ok {
+		return res
 	}
 
-	task.StartBackgroundTask("gconf-refresher", time.Millisecond*100, func() {
-		if len(cache) == 0 {
-			time.Sleep(time.Second * 2)
-			return
-		}
-		var keys []string
-		for k := range cache {
-			keys = append(keys, k)
-		}
-		configAppIdList := strings.Join(keys, ",")
-		needChangeAppIdList, err := httpGetListResp(baseUrl + "/api/watch?configAppIdList=" + configAppIdList + "&clientId=" + system.GetInstanceId())
-		if err != nil {
-			log.Printf("wath error" + err.Error())
-			time.Sleep(time.Second * 10)
-			return
-		}
+	ds.mux.Lock()
+	defer ds.mux.Unlock()
 
-		for _, appId := range needChangeAppIdList {
-			cache[appId].refreshData()
-		}
-	})
+	//double check
+	res, ok = ds.dataCache[appId]
+	if ok {
+		return res
+	}
+
+	configApp := ds.client.getConfigApp(appId)
+	if configApp == nil {
+		return nil
+	}
+
+	res = &ConfigCollection{
+		appId:     appId,
+		name:      configApp.Name,
+		data:      map[string]*Value{},
+		listeners: map[string][]ConfigChangeListener{},
+	}
+	res.refreshData(ds.client)
+	ds.dataCache[appId] = res
+	return res
 }
 
 // 获取当前应用的配置集合
@@ -56,33 +96,5 @@ func GetGlobalConfigCollection() *ConfigCollection {
 
 // 获取某个appId的配置集合
 func GetConfigCollection(appId string) *ConfigCollection {
-	res, ok := cache[appId]
-	if ok {
-		return res
-	}
-
-	mux.Lock()
-	defer mux.Unlock()
-
-	//double check
-	res, ok = cache[appId]
-	if ok {
-		return res
-	}
-
-	configApp, err := httpGetMapResp(baseUrl + "/api/getConfigApp?configAppId=" + appId)
-	if err != nil {
-		log.Println(err.Error())
-		return nil
-	}
-
-	res = &ConfigCollection{
-		appId:     appId,
-		name:      configApp["name"],
-		data:      map[string]*configData{},
-		listeners: map[string][]ConfigChangeListener{},
-	}
-	res.refreshData()
-	cache[appId] = res
-	return res
+	return ds.getConfigCollection(appId)
 }
