@@ -4,7 +4,7 @@ import (
 	"github.com/guanaitong/crab/cache"
 	"github.com/guanaitong/crab/redis"
 	"github.com/guanaitong/crab/system"
-	"github.com/guanaitong/crab/util"
+	"github.com/guanaitong/crab/util/strings2"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -60,9 +60,9 @@ func TestLocalCache(t *testing.T) {
 	system.SetupAppName("for-test-java")
 
 	var c = redis.NewRedisCache("test", redis.GetDefaultRedisConfig().NewClient())
-	c.Set("123", util.StringToBytes("456"), 0)
+	c.Set("123", strings2.StringToBytes("456"), 0)
 	v, err := c.Get("123")
-	if err == nil && util.BytesToString(v) == "456" {
+	if err == nil && strings2.BytesToString(v) == "456" {
 		t.Log("sucess")
 	} else {
 		t.Fail()
@@ -72,7 +72,7 @@ func TestLocalCache(t *testing.T) {
 		t.Fail()
 	}
 
-	c.Set("123", util.StringToBytes("789"), time.Second)
+	c.Set("123", strings2.StringToBytes("789"), time.Second)
 	time.Sleep(time.Second * 2)
 	v, err = c.Get("123")
 	if err != cache.ErrEntryNotFound {

@@ -4,25 +4,7 @@ import (
 	"crypto/rsa"
 	"math/big"
 	"reflect"
-	"unsafe"
 )
-
-func Int32Ptr(i int32) *int32 { return &i }
-
-// BytesToString converts byte slice to string.
-func BytesToString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// StringToBytes converts string to byte slice.
-func StringToBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(
-		&struct {
-			string
-			Cap int
-		}{s, len(s)},
-	))
-}
 
 func RsaPublicDecrypt(pubKey *rsa.PublicKey, data []byte) []byte {
 	c := new(big.Int)

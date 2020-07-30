@@ -68,6 +68,8 @@ func (v *Value) refresh(newValue string) bool {
 	}
 	return true
 }
+
+// 注册一个bean，会自动更新
 func (v *Value) Register(x interface{}) error {
 	if v.valueHandler != nil {
 		panic("value has registered")
@@ -137,71 +139,57 @@ func setFieldValue(filed reflect.Value, value string) {
 	case reflect.String:
 		filed.Set(reflect.ValueOf(value))
 	case reflect.Bool:
-		i, err := strconv.ParseBool(value)
-		if err == nil {
+		if i, err := strconv.ParseBool(value); err == nil {
 			filed.Set(reflect.ValueOf(i))
 		}
 	case reflect.Int:
-		i, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseInt(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(int(i)))
 		}
 	case reflect.Int8:
-		i, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseInt(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(int8(i)))
 		}
 	case reflect.Int16:
-		i, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseInt(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(int16(i)))
 		}
 	case reflect.Int32:
-		i, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseInt(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(int32(i)))
 		}
 	case reflect.Int64:
-		i, err := strconv.ParseInt(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseInt(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(i))
 		}
 	case reflect.Uint:
-		i, err := strconv.ParseUint(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseUint(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(uint(i)))
 		}
 	case reflect.Uint8:
-		i, err := strconv.ParseUint(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseUint(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(uint8(i)))
 		}
 	case reflect.Uint16:
-		i, err := strconv.ParseUint(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseUint(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(uint16(i)))
 		}
 	case reflect.Uint32:
-		i, err := strconv.ParseUint(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseUint(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(uint32(i)))
 		}
 	case reflect.Uint64:
-		i, err := strconv.ParseUint(value, 10, 0)
-		if err == nil {
+		if i, err := strconv.ParseUint(value, 10, 0); err == nil {
 			filed.Set(reflect.ValueOf(i))
 		}
 	case reflect.Float64:
-		i, err := strconv.ParseFloat(value, 10)
-		if err == nil {
+		if i, err := strconv.ParseFloat(value, 10); err == nil {
 			filed.Set(reflect.ValueOf(i))
 		}
 	case reflect.Float32:
-		i, err := strconv.ParseFloat(value, 10)
-		if err == nil {
+		if i, err := strconv.ParseFloat(value, 10); err == nil {
 			filed.Set(reflect.ValueOf(float32(i)))
 		}
-
 	}
 
 }

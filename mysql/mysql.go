@@ -129,7 +129,7 @@ func decrypt(encryptedPassword string) string {
 	if err != nil {
 		return ""
 	}
-	publicKey := gconf.GetGlobalConfig().GetValue("publicKey").Raw()
+	publicKey := gconf.GetGlobalConfigCollection().GetValue("publicKey").Raw()
 	key, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
 		return ""
@@ -148,7 +148,7 @@ func GetDataSourceConfig(key string) *DataSourceConfig {
 	}
 
 	dataSourceConfig := new(DataSourceConfig)
-	configValue := gconf.GetCurrentConfig().GetValue(key).Raw()
+	configValue := gconf.GetCurrentConfigCollection().GetValue(key).Raw()
 	err := json.UnmarshalFromString(configValue, dataSourceConfig)
 	if err != nil {
 		panic(err.Error())

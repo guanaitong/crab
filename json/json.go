@@ -1,7 +1,7 @@
 package json
 
 import (
-	"github.com/guanaitong/crab/util"
+	"github.com/guanaitong/crab/util/strings2"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -38,5 +38,5 @@ func AsBytes(v interface{}) []byte {
 }
 
 func AsJson(d string, v interface{}) error {
-	return Unmarshal(util.StringToBytes(d), v)
+	return Unmarshal(strings2.StringToBytes(d), v)
 }

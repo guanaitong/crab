@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 type es struct {
@@ -23,7 +24,7 @@ type impower struct {
 
 func TestGetConfigCollection(t *testing.T) {
 	t.Log("[impower]-------------------------------")
-	d1 := gconf.GetConfig("impower")
+	d1 := gconf.GetConfigCollection("impower")
 	t.Log(d1, d1.AsMap())
 
 	dm1 := d1.GetValue("deny.properties")
@@ -36,12 +37,14 @@ func TestGetConfigCollection(t *testing.T) {
 		t.Logf("%+v\n", imp)
 	}
 
+	time.Sleep(time.Minute*10)
+
 	t.Log("[userdoor]------------------------------")
-	c := gconf.GetConfig("userdoor")
+	c := gconf.GetConfigCollection("userdoor")
 	v1 := c.GetValue("es.properties")
 	t.Log(v1, v1, c.AsMap())
 
-	c1 := gconf.GetConfig("userdoor")
+	c1 := gconf.GetConfigCollection("userdoor")
 	t.Log(c1.AsMap())
 
 	p := new(es)

@@ -19,7 +19,7 @@ func TestDecrypt(t *testing.T) {
 }*/
 
 func TestGetDataSourceConfig(t *testing.T) {
-	system.SetupAppName("approval")
+	system.SetupAppName("gce-api-ucenter")
 	d := mysql.GetDefaultDataSourceConfig()
 	//d := mysql.GetDataSourceConfig("datasource.json")
 	assert.NotNil(t, d)

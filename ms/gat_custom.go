@@ -41,7 +41,7 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 	if ok {
 		return []*ServiceInstance{s}, nil
 	}
-	m := gconf.GetGlobalConfig().GetConfigAsStructuredMap("service_address.properties")
+	m := gconf.GetGlobalConfigCollection().GetConfigAsStructuredMap("service_address.properties")
 	h, ok := m[serviceId]
 	if ok {
 		return dc.domainDiscoveryClient.GetInstances(h.AsString())
@@ -50,7 +50,7 @@ func (dc *GatDiscoveryClient) GetInstances(serviceId string) (res []*ServiceInst
 }
 
 func (dc *GatDiscoveryClient) getInstancesByK8s(serviceId string) ([]*ServiceInstance, error) {
-	globalConfigCollection := gconf.GetGlobalConfig()
+	globalConfigCollection := gconf.GetGlobalConfigCollection()
 	namespaceConfig := globalConfigCollection.GetConfigAsStructuredMap("namespace.properties")
 	namespace := k8s.GetCurrentNamespace()
 	namespaceValue, ok := namespaceConfig[serviceId]
