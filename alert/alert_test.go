@@ -1,7 +1,7 @@
 package alert_test
 
 import (
-	"github.com/guanaitong/crab/util/alert"
+	"github.com/guanaitong/crab/alert"
 	"testing"
 	"time"
 )

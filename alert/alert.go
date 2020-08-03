@@ -2,6 +2,7 @@ package alert
 
 import (
 	"bytes"
+	"github.com/guanaitong/crab/gconf"
 	"github.com/guanaitong/crab/hc"
 	"github.com/guanaitong/crab/json"
 	"github.com/guanaitong/crab/system"
@@ -15,16 +16,14 @@ import (
 )
 
 const (
-	baseUrl = "http://message.frigate.devops.wuxingdev.cn"
-
 	// way = 0
-	byAppNameUrl = baseUrl + "/v2/message/sendMsgByAppNames"
+	byAppNameUrl = "/v2/message/sendMsgByAppNames"
 
 	// way = 1
-	byGroupUrl = baseUrl + "/v2/message/sendMsgByGroups"
+	byGroupUrl = "/v2/message/sendMsgByGroups"
 
 	// way = 2
-	byQiWeiXinUrl = baseUrl + "/v2/message/sendMsgByWeChatIds"
+	byQiWeiXinUrl = "/v2/message/sendMsgByWeChatIds"
 
 	bufferLen = 4096
 )
@@ -159,11 +158,11 @@ func send(message *FrigateMessage) error {
 
 	byUrl := ""
 	if way == 0 {
-		byUrl = byAppNameUrl
+		byUrl = getBaseUrl() + byAppNameUrl
 	} else if way == 1 {
-		byUrl = byGroupUrl
+		byUrl = getBaseUrl() + byGroupUrl
 	} else if way == 2 {
-		byUrl = byQiWeiXinUrl
+		byUrl = getBaseUrl() + byQiWeiXinUrl
 	}
 
 	byUrl = byUrl + "?" + url.QueryEscape(message.receiveInfo.Key) + "=" + url.QueryEscape(message.receiveInfo.Value)
@@ -192,4 +191,8 @@ func send(message *FrigateMessage) error {
 	log.Printf("send request fail, status:%d,body:%s", resp.StatusCode(), resp.AsString())
 
 	return nil
+}
+
+func getBaseUrl() string {
+	return gconf.GetGlobalConfigCollection().GetValue("service_address.properties").AsProperties()["message_base_url"]
 }

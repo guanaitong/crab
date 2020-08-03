@@ -54,6 +54,22 @@ func (v *Value) Raw() string {
 	return v.value
 }
 
+func (v *Value) AsProperties() map[string]string {
+	if v.fileType != properties {
+		panic("unsupported")
+	}
+	return readMapFromProp(v.Raw())
+}
+
+func (v *Value) AsJson() map[string]interface{} {
+	if v.fileType != jsons {
+		panic("unsupported")
+	}
+	m := make(map[string]interface{})
+	json.Unmarshal([]byte(v.Raw()), &m)
+	return m
+}
+
 func (v *Value) FileType() int {
 	return v.fileType
 }
@@ -89,7 +105,7 @@ func jsonFunc(value string, cp interface{}) error {
 }
 
 func propFunc(value string, cp interface{}) error {
-	data := ReadMapFromProp(value)
+	data := readMapFromProp(value)
 	if len(data) == 0 {
 		return nil
 	}
@@ -193,7 +209,7 @@ func setFieldValue(filed reflect.Value, value string) {
 	}
 
 }
-func ReadMapFromProp(value string) map[string]string {
+func readMapFromProp(value string) map[string]string {
 	var (
 		part   []byte
 		prefix bool

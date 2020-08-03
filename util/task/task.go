@@ -2,7 +2,7 @@ package task
 
 import (
 	"fmt"
-	"github.com/guanaitong/crab/util/alert"
+	"github.com/guanaitong/crab/alert"
 	"github.com/guanaitong/crab/util/runtime"
 	"time"
 )
