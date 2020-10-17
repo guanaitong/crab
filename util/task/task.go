@@ -48,7 +48,7 @@ type WorkGroup interface {
 // 因为：context的CancelFunc不会等待任务真正停止
 // 所以有workerGroup的封装：workerGroup的stop方法，会同步等待任务真正stop
 // 一个workerGroup对应一组goroutine，数量为parallelNum
-type workerGroup struct {
+type workGroup struct {
 	name         string
 	period       time.Duration
 	taskFunc     func(ctx context.Context)
@@ -58,17 +58,17 @@ type workerGroup struct {
 	parallelNum  int
 }
 
-func (worker *workerGroup) Start() {
-	klog.Infof("workerGroup [%s] starting", worker.name)
+func (worker *workGroup) Start() {
+	klog.Infof("workGroup [%s] starting", worker.name)
 	for i := 0; i < worker.parallelNum; i++ {
 		worker.startOneGoroutine(i)
 	}
-	klog.Infof("workerGroup [%s] started", worker.name)
+	klog.Infof("workGroup [%s] started", worker.name)
 }
 
 const GoroutineIndexKey = "goroutine_index"
 
-func (worker *workerGroup) startOneGoroutine(i int) {
+func (worker *workGroup) startOneGoroutine(i int) {
 	go func() {
 		goroutineName := fmt.Sprintf("%s__%d", worker.name, i)
 		for {
@@ -88,17 +88,17 @@ func (worker *workerGroup) startOneGoroutine(i int) {
 			case <-worker.ctx.Done():
 				// 收到ctx的停止信号后，给stoppedSignal发一个信号
 				worker.stopSignalCh <- struct{}{}
-				klog.Infof("workerGroup [%s] goroutine_index_[%d] stopped", worker.name, i)
+				klog.Infof("workGroup [%s] goroutine_index_[%d] stopped", worker.name, i)
 				return
 			}
 		}
 	}()
-	klog.Infof("workerGroup [%s] goroutine_index_[%d] started", worker.name, i)
+	klog.Infof("workGroup [%s] goroutine_index_[%d] started", worker.name, i)
 }
 
 // stop方法会等待taskFunc彻底退出
-func (worker *workerGroup) Stop() {
-	klog.Infof("workerGroup [%s] stopping", worker.name)
+func (worker *workGroup) Stop() {
+	klog.Infof("workGroup [%s] stopping", worker.name)
 	worker.cancel()
 	// 等待真正停止信号
 	stopNum := 0
@@ -109,7 +109,7 @@ func (worker *workerGroup) Stop() {
 		}
 	}
 	close(worker.stopSignalCh)
-	klog.Infof("workerGroup [%s] stopped", worker.name)
+	klog.Infof("workGroup [%s] stopped", worker.name)
 }
 
 func NewWorkGroup(
@@ -122,7 +122,7 @@ func NewWorkGroup(
 		panic("parallelNum must be positive")
 	}
 	ctx, cancel := context.WithCancel(parentCtx)
-	r := &workerGroup{name: name,
+	r := &workGroup{name: name,
 		period:       period,
 		taskFunc:     taskFunc,
 		stopSignalCh: make(chan struct{}, parallelNum),

@@ -75,7 +75,7 @@ func TestStartBackgroundTask(t *testing.T) {
 	time.Sleep(time.Second * 3)
 
 	if count < 3 {
-		t.Errorf("not workerGroup")
+		t.Errorf("not workGroup")
 	}
 }
 
@@ -87,6 +87,6 @@ func TestStartBackgroundTaskCrash(t *testing.T) {
 	})
 	time.Sleep(time.Second * 5)
 	if count < 3 {
-		t.Errorf("not workerGroup")
+		t.Errorf("not workGroup")
 	}
 }*/
