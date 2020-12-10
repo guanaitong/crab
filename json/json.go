@@ -1,26 +1,30 @@
 package json
 
 import (
+	"encoding/json"
 	"github.com/guanaitong/crab/util/strings2"
-	jsoniter "github.com/json-iterator/go"
 )
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
 func MarshalToString(v interface{}) (string, error) {
-	return json.MarshalToString(v)
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }
 func Marshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
 func UnmarshalFromString(str string, v interface{}) error {
-	return json.UnmarshalFromString(str, v)
+	return Unmarshal(strings2.StringToBytes(str), v)
 }
+
 func Unmarshal(data []byte, v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
+// 忽略异常
 func AsString(v interface{}) string {
 	r, err := Marshal(v)
 	if err != nil {
@@ -29,6 +33,7 @@ func AsString(v interface{}) string {
 	return string(r)
 }
 
+// 忽略异常
 func AsBytes(v interface{}) []byte {
 	r, err := Marshal(v)
 	if err != nil {
@@ -37,6 +42,6 @@ func AsBytes(v interface{}) []byte {
 	return r
 }
 
-func AsJson(d string, v interface{}) error {
-	return Unmarshal(strings2.StringToBytes(d), v)
+func AsJson(str string, v interface{}) error {
+	return Unmarshal(strings2.StringToBytes(str), v)
 }

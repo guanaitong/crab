@@ -2,7 +2,6 @@ package json_test
 
 import (
 	"github.com/guanaitong/crab/json"
-	"github.com/guanaitong/crab/util"
 	"testing"
 )
 
@@ -33,8 +32,4 @@ func TestAsJson(t *testing.T) {
 	} else {
 		t.Log(v)
 	}
-}
-
-func TestInt32Ptr(t *testing.T) {
-	t.Log(util.Int32Ptr(1))
 }
